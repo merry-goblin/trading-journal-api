@@ -2,13 +2,13 @@
 
 namespace App\Tests\Integration\Controller;
 
+use App\Tests\Integration\AbstractTestApiController;
 use App\Tests\Integration\ApiTestAuthTrait;
 use App\Tests\Integration\Factory\AssetFactory;
-use App\Tests\Integration\IntegrationTestCase;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 
-class ApiAssetControllerTest extends IntegrationTestCase
+class ApiAssetControllerTest extends AbstractTestApiController
 {
     use ApiTestAuthTrait;
 
@@ -18,13 +18,7 @@ class ApiAssetControllerTest extends IntegrationTestCase
         $this->requestAssetsUrl($this->getAuthHeaders('GET', '/api/assets'));
 
         // Assertions
-        $this->assertResponseIsSuccessful();
-        $this->assertResponseHeaderSame('content-type', 'application/json');
-
-        $json = $this->client->getResponse()->getContent();
-        $this->assertJson($json);
-
-        $data = json_decode($json, true);
+        $data = $this->assertJsonResponse();
         $this->assertIsArray($data);
         $this->assertCount(0, $data);
     }
@@ -39,13 +33,7 @@ class ApiAssetControllerTest extends IntegrationTestCase
         $this->requestAssetsUrl($this->getAuthHeaders('GET', '/api/assets'));
 
         // Assertions
-        $this->assertResponseIsSuccessful();
-        $this->assertResponseHeaderSame('content-type', 'application/json');
-
-        $json = $this->client->getResponse()->getContent();
-        $this->assertJson($json);
-
-        $data = json_decode($json, true);
+        $data = $this->assertJsonResponse();
         $this->assertIsArray($data);
         $this->assertCount(2, $data);
         $this->assertSame(
