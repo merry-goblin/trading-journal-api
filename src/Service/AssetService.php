@@ -25,6 +25,11 @@ class AssetService implements AssetServiceInterface
         return $this->repository->find($id);
     }
 
+    public function getBySymbol(string $symbol): ?Asset
+    {
+        return $this->repository->findOneBy(['symbol' => $symbol]);
+    }
+
     /**
      * @throws SymbolAlreadyExistsException
      */

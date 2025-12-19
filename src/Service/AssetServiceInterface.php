@@ -11,6 +11,8 @@ interface AssetServiceInterface
 
     public function get(int $id): ?Asset;
 
+    public function getBySymbol(string $symbol): ?Asset;
+
     /**
      * @throws SymbolAlreadyExistsException
      */

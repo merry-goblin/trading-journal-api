@@ -24,6 +24,7 @@ final class ApiAssetController extends AbstractController
     {
         $assets = $assetService->list();
 
+        // Response
         $output = array_map(fn(Asset $asset) => $outputMapper->fromEntity($asset), $assets);
         return $this->json($output);
     }
@@ -39,21 +40,25 @@ final class ApiAssetController extends AbstractController
             return $this->json(['error' => 'Asset not found'], 404);
         }
 
-        return $this->json($asset);
+        // Response
+        $output = $outputMapper->fromEntity($asset);
+        return $this->json($output);
     }
 
-    #[Route('/api/asset/{symbol}', name: 'findAssetBySymbol', methods: ['GET'], requirements: ['symbol' => '[a-zA-Z_]\w+'])]
+    #[Route('/api/assets/symbol/{symbol}', name: 'findAssetBySymbol', methods: ['GET'], requirements: ['symbol' => '[a-zA-Z_]\w+'])]
     public function showSymbol(
         AssetServiceInterface $assetService,
         AssetOutputMapperInterface $outputMapper,
         string $symbol): JsonResponse
     {
-        $asset = $assetService->get($symbol);
+        $asset = $assetService->getBySymbol($symbol);
         if (!$asset) {
             return $this->json(['error' => 'Asset not found'], 404);
         }
 
-        return $this->json($asset);
+        // Response
+        $output = $outputMapper->fromEntity($asset);
+        return $this->json($output);
     }
 
     #[Route('/api/asset', name: 'createAsset', methods: ['POST'])]
@@ -87,7 +92,7 @@ final class ApiAssetController extends AbstractController
         // entity creation
         $asset = $assetService->create($input);
 
-        // output data
+        // Response
         $output = $outputMapper->fromEntity($asset);
         return $this->json($output);
     }

@@ -22,7 +22,7 @@ class AssetServiceTest extends TestCase
     public function testGetOneAssetById(): void
     {
         // Mock data
-        $expected = $this->getNewAssetEurUsd();
+        $expected = $this->createAsset(1, 'EURUSD', 'forex', '');
         
         // Dependancy injections
         $assetRepository = $this->createMock(AssetRepositoryInterface::class);
@@ -64,12 +64,62 @@ class AssetServiceTest extends TestCase
         $this->assertNull($asset);
     }
 
+    /* getBySymbol method */
+
+    public function testGetBySymbolOneAsset(): void
+    {
+        // Mock data
+        $expected = $this->createAsset(1, 'EURUSD', 'forex', '');
+        
+        // Dependancy injections
+        $assetRepository = $this->createMock(AssetRepositoryInterface::class);
+        $assetRepository->expects(self::once())
+            ->method('findOneBy')
+            ->with(['symbol' => 'EURUSD'])
+            ->willReturn($expected)
+        ;
+        $em = $this->createStub(EntityManagerInterface::class);
+
+        // Start test
+        $assetService = new AssetService($assetRepository, $em);
+        $asset = $assetService->getBySymbol('EURUSD');
+
+        // Assertions
+        $this->assertInstanceOf(Asset::class, $asset);
+        $this->assertSame($expected, $asset);
+    }
+
+    public function testGetBySymbolWithSymbolNotFound(): void
+    {
+        // Mock data
+        $expected = null;
+        
+        // Dependancy injections
+        $assetRepository = $this->createMock(AssetRepositoryInterface::class);
+        $assetRepository->expects(self::once())
+            ->method('findOneBy')
+            ->with(['symbol' => 'CFAUSD'])
+            ->willReturn($expected)
+        ;
+        $em = $this->createStub(EntityManagerInterface::class);
+
+        // Start test
+        $assetService = new AssetService($assetRepository, $em);
+        $asset = $assetService->getBySymbol('CFAUSD');
+
+        // Assertions
+        $this->assertNull($asset);
+    }
+
     /* list method */
 
     public function testGetAllAssets(): void
     {
         // Mock data
-        $expectedList = $this->getNewAssets();
+        $expectedList = [
+            $this->createAsset(1, 'EURUSD', 'forex', ''),
+            $this->createAsset(2, 'EURGBP', 'forex', ''),
+        ];
         
         // Dependancy injections
         $assetRepository = $this->createMock(AssetRepositoryInterface::class);
@@ -116,7 +166,7 @@ class AssetServiceTest extends TestCase
     public function testCreateAsset(): void
     {
         // Mock data
-        $input = $this->getNewAssetInputEurUsd();
+        $input = $this->createAssetInput('EURUSD', 'forex', '');
 
         // Dependancy injection
         $assetRepository = $this->createStub(AssetRepositoryInterface::class);
@@ -143,7 +193,7 @@ class AssetServiceTest extends TestCase
     public function testCreateAssetWithSymbolDuplication(): void
     {
         // Mock data
-        $input = $this->getNewAssetInputEurUsd();
+        $input = $this->createAssetInput('EURUSD', 'forex', '');
         $exception = new UniqueConstraintViolationException(
             $this->createStub(DriverException::class),
             null
@@ -171,41 +221,31 @@ class AssetServiceTest extends TestCase
 
     /* private methods */
 
-    private function getNewAssetEurUsd()
-    {
+    private function createAsset(
+        int $id,
+        string $symbol,
+        string $type,
+        string $description
+    ): Asset {
         $asset = new Asset();
-        $asset->setId(1);
-        $asset->setSymbol('EURUSD');
-        $asset->setType('forex');
-        $asset->setDescription('');
+        $asset->setId($id);
+        $asset->setSymbol($symbol);
+        $asset->setType($type);
+        $asset->setDescription($description);
 
         return $asset;
     }
 
-    private function getNewAssets()
-    {
-        $asset = new Asset();
-        $asset->setId(1);
-        $asset->setSymbol('EURUSD');
-        $asset->setType('forex');
-        $asset->setDescription('');
-        
-        $asset2 = new Asset();
-        $asset2->setId(2);
-        $asset2->setSymbol('EURGBP');
-        $asset2->setType('forex');
-        $asset2->setDescription('');
+    private function createAssetInput(
+        string $symbol,
+        string $type,
+        string $description
+    ): AssetInput {
+        $assetInput = new AssetInput();
+        $assetInput->symbol = $symbol;
+        $assetInput->type = $type;
+        $assetInput->description = $description;
 
-        return [$asset, $asset2];
-    }
-    
-    private function getNewAssetInputEurUsd()
-    {
-        $asset = new AssetInput();
-        $asset->symbol = 'EURUSD';
-        $asset->type = 'forex';
-        $asset->description = '';
-
-        return $asset;
+        return $assetInput;
     }
 }
