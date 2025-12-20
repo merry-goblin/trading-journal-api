@@ -16,6 +16,6 @@ class AssetInput
     #[Assert\Length(min: 1, max: 50)]
     public string $type;
 
-    #[Assert\Length(min: 1, max: 255)]
+    #[Assert\Length(min: 0, max: 255)]
     public string $description;
 }

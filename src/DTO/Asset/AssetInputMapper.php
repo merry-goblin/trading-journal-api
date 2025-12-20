@@ -2,7 +2,7 @@
 
 namespace App\DTO\Asset;
 
-class AssetInputMapper
+class AssetInputMapper implements AssetInputMapperInterface
 {
     public function fromArray(array $data): AssetInput
     {

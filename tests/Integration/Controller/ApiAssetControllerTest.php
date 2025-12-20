@@ -120,6 +120,19 @@ class ApiAssetControllerTest extends AbstractTestApiController
         $this->assertSame('Asset not found', $data['error']);
     }
 
+    public function testShowByIdReturns404WhenIdNotANumber(): void
+    {
+        // Start test
+        $method = 'GET';
+        $path = '/api/asset/FOO';
+        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path));
+
+        // Assertions
+        $this->assertResponseStatusCodeSame(404);
+        $data = json_decode($this->client->getResponse()->getContent(), true);
+        $this->assertSame('Not Found', $data['error']);
+    }
+
     /* showBySymbol */
 
     public function testShowBySymbolReturnsAsset(): void
@@ -141,91 +154,81 @@ class ApiAssetControllerTest extends AbstractTestApiController
         $this->assertArrayHasKey('description', $data);
     }
 
-    /*public function testShowBySymbolReturns404WhenNotFound(): void
+    public function testShowBySymbolReturns404WhenNotFound(): void
     {
-        $this->client->request(
-            'GET',
-            '/api/asset/symbol/UNKNOWN',
-            [],
-            [],
-            $this->getAuthHeaders('GET', '/api/asset/symbol/UNKNOWN')
-        );
+        // Start test
+        $method = 'GET';
+        $path = '/api/asset/symbol/NOTFOUND';
+        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path));
 
+        // Assertions
         $this->assertResponseStatusCodeSame(404);
-    }*/
+    }
 
     /* create */
 
-    /*public function testCreateAssetReturnsCreatedAsset(): void
+    public function testCreateAssetReturnsCreatedAsset(): void
     {
         $payload = [
             'symbol' => 'EURUSD',
             'type' => 'forex',
             'description' => ''
         ];
+        $jsonContent = json_encode($payload);
 
-        $this->client->request(
-            'POST',
-            '/api/asset',
-            [],
-            [],
-            array_merge(
-                $this->getAuthHeaders('POST', '/api/asset'),
-                ['CONTENT_TYPE' => 'application/json']
-            ),
-            json_encode($payload)
-        );
+        // Start test
+        $method = 'POST';
+        $path = '/api/asset';
+        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
-        $this->assertResponseIsSuccessful();
-
-        $data = json_decode($this->client->getResponse()->getContent(), true);
+        // Assertions
+        $data = $this->assertJsonResponse();
+        $this->assertIsArray($data);
         $this->assertSame('EURUSD', $data['symbol']);
     }
 
     public function testCreateWithInvalidJsonReturns400(): void
     {
-        $this->client->request(
-            'POST',
-            '/api/asset',
-            [],
-            [],
-            $this->getAuthHeaders('POST', '/api/asset'),
-            '{invalid_json'
-        );
+        $jsonContent = '{invalid_json';
 
+        // Start test
+        $method = 'POST';
+        $path = '/api/asset';
+        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
+
+        // Assertions
         $this->assertResponseStatusCodeSame(400);
     }
 
     public function testCreateWithInvalidPayloadReturns422(): void
     {
-        $payload = ['symbol' => '']; // invalide
+        $payload = [
+            'symbol' => '',
+            'type' => 'forex',
+            'description' => ''
+        ];
+        $jsonContent = json_encode($payload);
 
-        $this->client->request(
-            'POST',
-            '/api/asset',
-            [],
-            [],
-            array_merge(
-                $this->getAuthHeaders('POST', '/api/asset'),
-                ['CONTENT_TYPE' => 'application/json']
-            ),
-            json_encode($payload)
-        );
+        // Start test
+        $method = 'POST';
+        $path = '/api/asset';
+        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
+        // Assertions
         $this->assertResponseStatusCodeSame(422);
-    }*/
-
+    }
 
     /* private */
 
-    private function requestAssetsUrl(string $method, string $path, array $headers): void
+    private function requestAssetsUrl(string $method, string $path, array $headers, ?string $content = null): void
     {
         $this->client->request(
             $method,
             $path,
             [],
             [],
-            $headers
+            $headers,
+            $content
         );
     }
 }
