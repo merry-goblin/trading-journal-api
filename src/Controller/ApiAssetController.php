@@ -45,8 +45,8 @@ final class ApiAssetController extends AbstractController
         return $this->json($output);
     }
 
-    #[Route('/api/assets/symbol/{symbol}', name: 'findAssetBySymbol', methods: ['GET'], requirements: ['symbol' => '[a-zA-Z_]\w+'])]
-    public function showSymbol(
+    #[Route('/api/asset/symbol/{symbol}', name: 'findAssetBySymbol', methods: ['GET'], requirements: ['symbol' => '[a-zA-Z_]\w+'])]
+    public function showBySymbol(
         AssetServiceInterface $assetService,
         AssetOutputMapperInterface $outputMapper,
         string $symbol): JsonResponse
