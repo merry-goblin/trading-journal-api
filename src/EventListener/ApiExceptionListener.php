@@ -2,6 +2,7 @@
 
 namespace App\EventListener;
 
+use App\Domain\Exception\ApiExceptionInterface;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
@@ -38,10 +39,17 @@ final class ApiExceptionListener
 
     private function normalizeException(Throwable $exception): array
     {
-        // 404
-        if ($exception instanceof NotFoundHttpException) {
-            return [404, 'Not Found', 'Resource not found', null];
+        if ($exception instanceof ApiExceptionInterface) {
+            return [
+                $exception->getStatusCode(),
+                $exception->getErrorCode(),
+                $exception->getMessage(),
+                null
+            ];
         }
+
+        // Exceptions should be handled like above
+        // In the meantime the code below will do the trick
 
         // 401
         if ($exception instanceof AuthenticationException) {

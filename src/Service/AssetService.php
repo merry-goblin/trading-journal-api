@@ -2,6 +2,7 @@
 
 namespace App\Service;
 
+use App\Domain\Exception\AssetNotFoundException;
 use App\DTO\Asset\AssetInput;
 use App\Entity\Asset;
 use App\Repository\AssetRepositoryInterface;
@@ -20,14 +21,28 @@ class AssetService implements AssetServiceInterface
         return $this->repository->findAll();
     }
 
-    public function get(int $id): ?Asset
+    /**
+     * @throws AssetNotFoundException
+     */
+    public function get(int $id): Asset
     {
-        return $this->repository->find($id);
+        $asset = $this->repository->find($id);
+        if (null === $asset) {
+            throw new AssetNotFoundException('Asset not found');
+        }
+        return $asset;
     }
 
-    public function getBySymbol(string $symbol): ?Asset
+    /**
+     * @throws AssetNotFoundException
+     */
+    public function getBySymbol(string $symbol): Asset
     {
-        return $this->repository->findOneBy(['symbol' => $symbol]);
+        $asset = $this->repository->findOneBy(['symbol' => $symbol]);
+        if (null === $asset) {
+            throw new AssetNotFoundException('Asset not found');
+        }
+        return $asset;
     }
 
     /**

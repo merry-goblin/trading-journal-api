@@ -117,7 +117,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Assertions
         $this->assertResponseStatusCodeSame(404);
         $data = json_decode($this->client->getResponse()->getContent(), true);
-        $this->assertSame('Asset not found', $data['error']);
+        $this->assertSame('Not Found', $data['error']);
     }
 
     public function testShowByIdReturns404WhenIdNotANumber(): void
@@ -130,7 +130,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Assertions
         $this->assertResponseStatusCodeSame(404);
         $data = json_decode($this->client->getResponse()->getContent(), true);
-        $this->assertSame('Not Found', $data['error']);
+        $this->assertSame('Http Error', $data['error']);
     }
 
     /* showBySymbol */

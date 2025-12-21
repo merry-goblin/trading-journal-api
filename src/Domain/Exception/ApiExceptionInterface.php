@@ -1,0 +1,9 @@
+<?php
+
+namespace App\Domain\Exception;
+
+interface ApiExceptionInterface
+{
+    public function getStatusCode(): int;
+    public function getErrorCode(): string;
+}

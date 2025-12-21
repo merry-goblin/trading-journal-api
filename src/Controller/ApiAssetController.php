@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Routing\Attribute\Route;
 
 use App\DTO\Asset\AssetInputMapperInterface;
@@ -36,9 +37,6 @@ final class ApiAssetController extends AbstractController
         int $id): JsonResponse
     {
         $asset = $assetService->get($id);
-        if (!$asset) {
-            return $this->json(['error' => 'Asset not found'], 404);
-        }
 
         // Response
         $output = $outputMapper->fromEntity($asset);
@@ -52,9 +50,6 @@ final class ApiAssetController extends AbstractController
         string $symbol): JsonResponse
     {
         $asset = $assetService->getBySymbol($symbol);
-        if (!$asset) {
-            return $this->json(['error' => 'Asset not found'], 404);
-        }
 
         // Response
         $output = $outputMapper->fromEntity($asset);
@@ -67,7 +62,7 @@ final class ApiAssetController extends AbstractController
         AssetInputMapperInterface $inputMapper,
         AssetOutputMapperInterface $outputMapper,
         AssetServiceInterface $assetService,
-        ValidatorInterface $validator): JsonResponse 
+        ValidatorInterface $validator): JsonResponse
     {
         // input data
         $data = json_decode($request->getContent(), true);
