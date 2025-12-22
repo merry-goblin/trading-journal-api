@@ -2,18 +2,21 @@
 
 namespace App\Service;
 
-use App\Domain\Exception\AssetNotFoundException;
+use App\Domain\Exception\NotFoundException\AssetNotFoundException;
+use App\Domain\Exception\ValidationException\AssetValidationException;
 use App\DTO\Asset\AssetInput;
 use App\Entity\Asset;
 use App\Repository\AssetRepositoryInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AssetService implements AssetServiceInterface
 {
     public function __construct(
         private AssetRepositoryInterface $repository,
-        private EntityManagerInterface $em
+        private EntityManagerInterface $em,
+        private ValidatorInterface $validator
     ) {}
 
     public function list(): array
@@ -50,6 +53,12 @@ class AssetService implements AssetServiceInterface
      */
     public function create(AssetInput $input): Asset
     {
+        // Validation
+        $violations = $this->validator->validate($input);
+        if (count($violations) > 0) {
+            throw new AssetValidationException($violations);
+        }
+
         $asset = new Asset();
         $asset->setSymbol($input->symbol);
         $asset->setType($input->type);

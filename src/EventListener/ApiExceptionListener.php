@@ -3,11 +3,11 @@
 namespace App\EventListener;
 
 use App\Domain\Exception\ApiExceptionInterface;
+use App\Domain\Exception\ValidationException;
 use Symfony\Component\EventDispatcher\Attribute\AsEventListener;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 use Symfony\Component\Validator\Exception\ValidationFailedException;
@@ -40,11 +40,17 @@ final class ApiExceptionListener
     private function normalizeException(Throwable $exception): array
     {
         if ($exception instanceof ApiExceptionInterface) {
+            $details = [];
+            if ($exception instanceof ValidationException) {
+                foreach ($exception->getViolations() as $violation) {
+                    $details[$violation->getPropertyPath()] = $violation->getMessage();
+                }
+            }
             return [
                 $exception->getStatusCode(),
                 $exception->getErrorCode(),
                 $exception->getMessage(),
-                null
+                $details,
             ];
         }
 
@@ -59,16 +65,6 @@ final class ApiExceptionListener
         // 403
         if ($exception instanceof AccessDeniedException) {
             return [403, 'Forbidden', 'Access denied', null];
-        }
-
-        // 422 (validation)
-        if ($exception instanceof ValidationFailedException) {
-            $errors = [];
-            foreach ($exception->getViolations() as $violation) {
-                $errors[$violation->getPropertyPath()] = $violation->getMessage();
-            }
-
-            return [422, 'Validation Error', 'Invalid request data', $errors];
         }
 
         // Generic HttpException (400, 405, etc.)

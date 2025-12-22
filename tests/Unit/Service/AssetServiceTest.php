@@ -2,7 +2,7 @@
 
 namespace App\Tests\Service;
 
-use App\Domain\Exception\AssetNotFoundException;
+use App\Domain\Exception\NotFoundException\AssetNotFoundException;
 use PHPUnit\Framework\TestCase;
 
 use App\DTO\Asset\AssetInput;
@@ -15,6 +15,11 @@ use Doctrine\ORM\EntityManagerInterface;
 use App\Service\SymbolAlreadyExistsException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Driver\Exception as DriverException;
+use App\Domain\Exception\ValidationException\AssetValidationException;
+
+use Symfony\Component\Validator\ConstraintViolation;
+use Symfony\Component\Validator\ConstraintViolationList;
+use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class AssetServiceTest extends TestCase
 {
@@ -33,9 +38,10 @@ class AssetServiceTest extends TestCase
             ->willReturn($expected)
         ;
         $em = $this->createStub(EntityManagerInterface::class);
+        $validator = $this->createStub(ValidatorInterface::class);
 
         // Start test
-        $assetService = new AssetService($assetRepository, $em);
+        $assetService = new AssetService($assetRepository, $em, $validator);
         $asset = $assetService->get(1);
 
         // Assertions
@@ -56,13 +62,14 @@ class AssetServiceTest extends TestCase
             ->willReturn($expected)
         ;
         $em = $this->createStub(EntityManagerInterface::class);
+        $validator = $this->createStub(ValidatorInterface::class);
 
         // Assertions
         $this->expectException(AssetNotFoundException::class);
         $this->expectExceptionMessage('Asset not found');
 
         // Start test
-        $assetService = new AssetService($assetRepository, $em);
+        $assetService = new AssetService($assetRepository, $em, $validator);
         $asset = $assetService->get(2);
     }
 
@@ -81,9 +88,10 @@ class AssetServiceTest extends TestCase
             ->willReturn($expected)
         ;
         $em = $this->createStub(EntityManagerInterface::class);
+        $validator = $this->createStub(ValidatorInterface::class);
 
         // Start test
-        $assetService = new AssetService($assetRepository, $em);
+        $assetService = new AssetService($assetRepository, $em, $validator);
         $asset = $assetService->getBySymbol('EURUSD');
 
         // Assertions
@@ -104,13 +112,14 @@ class AssetServiceTest extends TestCase
             ->willReturn($expected)
         ;
         $em = $this->createStub(EntityManagerInterface::class);
+        $validator = $this->createStub(ValidatorInterface::class);
 
         // Assertions
         $this->expectException(AssetNotFoundException::class);
         $this->expectExceptionMessage('Asset not found');
 
         // Start test
-        $assetService = new AssetService($assetRepository, $em);
+        $assetService = new AssetService($assetRepository, $em, $validator);
         $asset = $assetService->getBySymbol('CFAUSD');
     }
 
@@ -131,9 +140,10 @@ class AssetServiceTest extends TestCase
             ->willReturn($expectedList)
         ;
         $em = $this->createStub(EntityManagerInterface::class);
+        $validator = $this->createStub(ValidatorInterface::class);
 
         // Start test
-        $assetService = new AssetService($assetRepository, $em);
+        $assetService = new AssetService($assetRepository, $em, $validator);
         $assetList = $assetService->list();
 
         // Assertions
@@ -154,9 +164,10 @@ class AssetServiceTest extends TestCase
             ->willReturn($expectedList)
         ;
         $em = $this->createStub(EntityManagerInterface::class);
+        $validator = $this->createStub(ValidatorInterface::class);
 
         // Start test
-        $assetService = new AssetService($assetRepository, $em);
+        $assetService = new AssetService($assetRepository, $em, $validator);
         $assetList = $assetService->list();
 
         // Assertions
@@ -180,9 +191,14 @@ class AssetServiceTest extends TestCase
         $em->expects(self::once())
             ->method('flush')
         ;
+        $validator = $this->createMock(ValidatorInterface::class);
+        $validator->expects(self::once())
+            ->method('validate')
+            ->willReturn(new ConstraintViolationList())
+        ;
 
         // Start test
-        $assetService = new AssetService($assetRepository, $em);
+        $assetService = new AssetService($assetRepository, $em, $validator);
         $asset = $assetService->create($input);
 
         // Assertions
@@ -212,13 +228,56 @@ class AssetServiceTest extends TestCase
             ->method('flush')
             ->willThrowException($exception)
         ;
+        $validator = $this->createMock(ValidatorInterface::class);
+        $validator->expects(self::once())
+            ->method('validate')
+            ->willReturn(new ConstraintViolationList())
+        ;
 
         // Assertions
         $this->expectException(SymbolAlreadyExistsException::class);
         $this->expectExceptionMessage('EURUSD symbol already exists');
 
         // Start test
-        $assetService = new AssetService($assetRepository, $em);
+        $assetService = new AssetService($assetRepository, $em, $validator);
+        $assetService->create($input);
+    }
+
+    public function testCreateAssetWithInvalidPayloadThrowsException(): void
+    {
+        // Mock data
+        $input = $this->createAssetInput('', '', '');
+        $violations = new ConstraintViolationList([
+            new ConstraintViolation(
+                message: 'This value should not be blank.',
+                messageTemplate: null,
+                parameters: [],
+                root: $input,
+                propertyPath: 'symbol',
+                invalidValue: '',
+            ),
+        ]);
+
+        // Dependancy injection
+        $assetRepository = $this->createStub(AssetRepositoryInterface::class);
+        $em = $this->createMock(EntityManagerInterface::class);
+        $em->expects(self::never())
+            ->method('persist')
+        ;
+        $em->expects(self::never())
+            ->method('flush')
+        ;
+        $validator = $this->createMock(ValidatorInterface::class);
+        $validator->expects(self::once())
+            ->method('validate')
+            ->willReturn($violations)
+        ;
+
+        // Assertions
+        $this->expectException(AssetValidationException::class);
+
+        // Start test
+        $assetService = new AssetService($assetRepository, $em, $validator);
         $assetService->create($input);
     }
 
