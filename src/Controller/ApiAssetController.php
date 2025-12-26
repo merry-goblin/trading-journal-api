@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use App\DTO\Asset\AssetInputMapperInterface;
 use App\DTO\Asset\AssetOutputMapperInterface;
 use App\Entity\Asset;
-use App\Service\AssetServiceInterface;
+use App\Service\Asset\AssetServiceInterface;
 
 final class ApiAssetController extends AbstractController
 {

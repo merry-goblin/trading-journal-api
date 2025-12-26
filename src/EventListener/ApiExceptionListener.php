@@ -10,7 +10,6 @@ use Symfony\Component\HttpKernel\Event\ExceptionEvent;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 use Symfony\Component\Security\Core\Exception\AccessDeniedException;
-use Symfony\Component\Validator\Exception\ValidationFailedException;
 use Throwable;
 
 #[AsEventListener(event: 'kernel.exception')]
@@ -20,7 +19,7 @@ final class ApiExceptionListener
     {
         $request = $event->getRequest();
 
-        // 🔒 On ne touche qu'aux routes API
+        // 🔒 Only for API routing
         if (!str_starts_with($request->getPathInfo(), '/api')) {
             return;
         }
@@ -54,9 +53,6 @@ final class ApiExceptionListener
             ];
         }
 
-        // Exceptions should be handled like above
-        // In the meantime the code below will do the trick
-
         // 401
         if ($exception instanceof AuthenticationException) {
             return [401, 'Unauthorized', 'Authentication required', null];
@@ -77,14 +73,14 @@ final class ApiExceptionListener
             ];
         }
 
-        throw $exception;
+        // For debug purpose only: throw $exception;
 
-        /*// 💥 Internal error (500)
+        // 💥 Internal error (500)
         return [
             500,
             'Internal Error',
             'An unexpected error occurred',
             null,
-        ];*/
+        ];
     }
 }

@@ -14,7 +14,7 @@ class Timeframe
     private ?int $id = null;
 
     #[ORM\Column(length: 25)]
-    private ?string $code = null;
+    private ?string $label = null;
 
     #[ORM\Column]
     private ?int $seconds = null;
@@ -24,14 +24,21 @@ class Timeframe
         return $this->id;
     }
 
-    public function getCode(): ?string
+    public function setId(int $id): static
     {
-        return $this->code;
+        $this->id = $id;
+
+        return $this;
     }
 
-    public function setCode(string $code): static
+    public function getLabel(): ?string
     {
-        $this->code = $code;
+        return $this->label;
+    }
+
+    public function setLabel(string $label): static
+    {
+        $this->label = $label;
 
         return $this;
     }

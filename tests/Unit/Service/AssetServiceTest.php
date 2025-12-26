@@ -8,11 +8,11 @@ use PHPUnit\Framework\TestCase;
 use App\DTO\Asset\AssetInput;
 use App\Entity\Asset;
 
-use App\Service\AssetService;
+use App\Service\Asset\AssetService;
 use App\Repository\AssetRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
-use App\Service\SymbolAlreadyExistsException;
+use App\Service\Asset\SymbolAlreadyExistsException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use App\Domain\Exception\ValidationException\AssetValidationException;
