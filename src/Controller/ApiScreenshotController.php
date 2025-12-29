@@ -8,68 +8,56 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Attribute\Route;
 
-use App\DTO\Screenshot\ScreenshotInputMapper;
-use App\DTO\Screenshot\ScreenshotOutputMapper;
-use App\Service\ScreenshotService;
-
-use Symfony\Component\Validator\Validator\ValidatorInterface;
+use App\DTO\Screenshot\ScreenshotInputMapperInterface;
+use App\DTO\Screenshot\ScreenshotOutputMapperInterface;
+use App\Entity\Screenshot;
+use App\Service\Screenshot\ScreenshotServiceInterface;
 
 final class ApiScreenshotController extends AbstractController
 {
-    /*#[Route('/api/{symbol}/screenshot', name: 'listScreenshots', methods: ['GET'])]
+    #[Route('/api/screenshots', name: 'listScreenshots', methods: ['GET'])]
     public function list(
-        ProductService $productService): JsonResponse
+        ScreenshotServiceInterface $screenshotService,
+        ScreenshotOutputMapperInterface $outputMapper): JsonResponse
     {
-        $products = $productService->list();
+        $screenshots = $screenshotService->list();
 
-        return $this->json($products);
-    }*/
+        // Response
+        $output = array_map(fn(Screenshot $screenshot) => $outputMapper->fromEntity($screenshot), $screenshots);
+        return $this->json($output);
+    }
 
-    #[Route('/api/screenshot/{id}', name: 'showScreenshot', methods: ['GET'])]
+    #[Route('/api/screenshot/{id}', name: 'findScreenshotById', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function show(
-        ScreenshotService $screenshotService,
+        ScreenshotServiceInterface $screenshotService,
+        ScreenshotOutputMapperInterface $outputMapper,
         int $id): JsonResponse
     {
         $screenshot = $screenshotService->get($id);
-        if (!$screenshot) {
-            return $this->json(['error' => 'Screenshot not found'], 404);
-        }
 
-        return $this->json($screenshot);
+        // Response
+        $output = $outputMapper->fromEntity($screenshot);
+        return $this->json($output);
     }
 
     #[Route('/api/screenshot', name: 'createScreenshot', methods: ['POST'])]
     public function create(
         Request $request,
-        ScreenshotInputMapper $inputMapper,
-        ScreenshotOutputMapper $outputMapper,
-        ScreenshotService $screenshotService,
-        ValidatorInterface $validator): JsonResponse 
+        ScreenshotInputMapperInterface $inputMapper,
+        ScreenshotOutputMapperInterface $outputMapper,
+        ScreenshotServiceInterface $screenshotService): JsonResponse
     {
-        // input data
+        // Input data
         $data = json_decode($request->getContent(), true);
         if (!$data) {
             return $this->json(['error' => 'Invalid JSON'], 400);
         }
         $input = $inputMapper->fromArray($data);
 
-        // validation
-        $errors = $validator->validate($input);
-        if (count($errors) > 0) {
-            $list = [];
-            foreach ($errors as $e) {
-                $list[$e->getPropertyPath()] = $e->getMessage();
-            }
-            return $this->json([
-                'error' => 'Validation failed',
-                'details' => $errors
-            ], 422);
-        }
-
-        // entity creation
+        // Entity creation
         $screenshot = $screenshotService->create($input);
 
-        // output data
+        // Response
         $output = $outputMapper->fromEntity($screenshot);
         return $this->json($output);
     }

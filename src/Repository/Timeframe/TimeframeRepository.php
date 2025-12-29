@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Timeframe;
 
 use App\Entity\Timeframe;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
@@ -9,7 +9,7 @@ use Doctrine\Persistence\ManagerRegistry;
 /**
  * @extends ServiceEntityRepository<Timeframe>
  */
-class TimeframeRepository extends ServiceEntityRepository
+class TimeframeRepository extends ServiceEntityRepository implements TimeframeRepositoryInterface
 {
     public function __construct(ManagerRegistry $registry)
     {

@@ -6,7 +6,7 @@ use App\Domain\Exception\NotFoundException\TimeframeNotFoundException;
 use App\Domain\Exception\ValidationException\TimeframeValidationException;
 use App\DTO\Timeframe\TimeframeInput;
 use App\Entity\Timeframe;
-use App\Repository\TimeframeRepositoryInterface;
+use App\Repository\Timeframe\TimeframeRepositoryInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;

@@ -6,7 +6,7 @@ use App\Domain\Exception\NotFoundException\AssetNotFoundException;
 use App\Domain\Exception\ValidationException\AssetValidationException;
 use App\DTO\Asset\AssetInput;
 use App\Entity\Asset;
-use App\Repository\AssetRepositoryInterface;
+use App\Repository\Asset\AssetRepositoryInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;

@@ -1,23 +1,23 @@
 <?php
 
-namespace App\Repository;
+namespace App\Repository\Screenshot;
 
-use App\Entity\Asset;
+use App\Entity\Screenshot;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @extends ServiceEntityRepository<Asset>
+ * @extends ServiceEntityRepository<Screenshot>
  */
-class AssetRepository extends ServiceEntityRepository implements AssetRepositoryInterface
+class ScreenshotRepository extends ServiceEntityRepository implements ScreenshotRepositoryInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, Asset::class);
+        parent::__construct($registry, Screenshot::class);
     }
 
 //    /**
-//     * @return Asset[] Returns an array of Asset objects
+//     * @return Screenshot[] Returns an array of Screenshot objects
 //     */
 //    public function findByExampleField($value): array
 //    {
@@ -31,7 +31,7 @@ class AssetRepository extends ServiceEntityRepository implements AssetRepository
 //        ;
 //    }
 
-//    public function findOneBySomeField($value): ?Asset
+//    public function findOneBySomeField($value): ?Screenshot
 //    {
 //        return $this->createQueryBuilder('a')
 //            ->andWhere('a.exampleField = :val')

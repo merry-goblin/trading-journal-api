@@ -15,7 +15,7 @@ use App\Service\Timeframe\TimeframeServiceInterface;
 
 final class ApiTimeframeController extends AbstractController
 {
-    #[Route('/api/timeframe', name: 'listTimeframes', methods: ['GET'])]
+    #[Route('/api/timeframes', name: 'listTimeframes', methods: ['GET'])]
     public function list(
         TimeframeServiceInterface $timeframeService,
         TimeframeOutputMapperInterface $outputMapper): JsonResponse
@@ -40,8 +40,8 @@ final class ApiTimeframeController extends AbstractController
         return $this->json($output);
     }
 
-    #[Route('/api/timeframe/symbol/{symbol}', name: 'findTimeframeBySymbol', methods: ['GET'], requirements: ['symbol' => '[a-zA-Z_]\w+'])]
-    public function showBySymbol(
+    #[Route('/api/timeframe/label/{symbol}', name: 'findTimeframeByLabel', methods: ['GET'], requirements: ['label' => '[a-zA-Z_]\w+'])]
+    public function showByLabel(
         TimeframeServiceInterface $timeframeService,
         TimeframeOutputMapperInterface $outputMapper,
         string $symbol): JsonResponse

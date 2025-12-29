@@ -9,7 +9,7 @@ use App\DTO\Timeframe\TimeframeInput;
 use App\Entity\Timeframe;
 
 use App\Service\Timeframe\TimeframeService;
-use App\Repository\TimeframeRepositoryInterface;
+use App\Repository\Timeframe\TimeframeRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 use App\Service\Timeframe\LabelAlreadyExistsException;

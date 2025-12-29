@@ -9,7 +9,7 @@ use App\DTO\Asset\AssetInput;
 use App\Entity\Asset;
 
 use App\Service\Asset\AssetService;
-use App\Repository\AssetRepositoryInterface;
+use App\Repository\Asset\AssetRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
 use App\Service\Asset\SymbolAlreadyExistsException;
