@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Service;
+namespace App\Tests\Unit\Domain\Service;
 
 use App\Domain\Exception\NotFoundException\TimeframeNotFoundException;
 use PHPUnit\Framework\TestCase;
@@ -8,11 +8,11 @@ use PHPUnit\Framework\TestCase;
 use App\DTO\Timeframe\TimeframeInput;
 use App\Entity\Timeframe;
 
-use App\Service\Timeframe\TimeframeService;
+use App\Domain\Service\Timeframe\TimeframeService;
 use App\Repository\Timeframe\TimeframeRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
-use App\Service\Timeframe\LabelAlreadyExistsException;
+use App\Domain\Service\Timeframe\LabelAlreadyExistsException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use App\Domain\Exception\ValidationException\TimeframeValidationException;
@@ -30,7 +30,7 @@ class TimeframeServiceTest extends TestCase
         // Mock data
         $expected = $this->createTimeframe(1, 'M1', 60);
 
-        // Dependancy injections
+        // Dependency injections
         $timeframeRepository = $this->createMock(TimeframeRepositoryInterface::class);
         $timeframeRepository->expects(self::once())
             ->method('find')
@@ -54,7 +54,7 @@ class TimeframeServiceTest extends TestCase
         // Mock data
         $expected = null;
 
-        // Dependancy injections
+        // Dependency injections
         $timeframeRepository = $this->createMock(TimeframeRepositoryInterface::class);
         $timeframeRepository->expects(self::once())
             ->method('find')
@@ -80,7 +80,7 @@ class TimeframeServiceTest extends TestCase
         // Mock data
         $expected = $this->createTimeframe(1, 'M1', 60);
 
-        // Dependancy injections
+        // Dependency injections
         $timeframeRepository = $this->createMock(TimeframeRepositoryInterface::class);
         $timeframeRepository->expects(self::once())
             ->method('findOneBy')
@@ -104,7 +104,7 @@ class TimeframeServiceTest extends TestCase
         // Mock data
         $expected = null;
 
-        // Dependancy injections
+        // Dependency injections
         $timeframeRepository = $this->createMock(TimeframeRepositoryInterface::class);
         $timeframeRepository->expects(self::once())
             ->method('findOneBy')
@@ -133,7 +133,7 @@ class TimeframeServiceTest extends TestCase
             $this->createTimeframe(1, 'M5', 300),
         ];
 
-        // Dependancy injections
+        // Dependency injections
         $timeframeRepository = $this->createMock(TimeframeRepositoryInterface::class);
         $timeframeRepository->expects(self::once())
             ->method('findAll')
@@ -157,7 +157,7 @@ class TimeframeServiceTest extends TestCase
         // Mock data
         $expectedList = [];
 
-        // Dependancy injections
+        // Dependency injections
         $timeframeRepository = $this->createMock(TimeframeRepositoryInterface::class);
         $timeframeRepository->expects(self::once())
             ->method('findAll')
@@ -182,7 +182,7 @@ class TimeframeServiceTest extends TestCase
         // Mock data
         $input = $this->createTimeframeInput('M1', 60);
 
-        // Dependancy injection
+        // Dependency injection
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())
@@ -217,7 +217,7 @@ class TimeframeServiceTest extends TestCase
             null
         );
 
-        // Dependancy injection
+        // Dependency injection
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())
@@ -257,7 +257,7 @@ class TimeframeServiceTest extends TestCase
             ),
         ]);
 
-        // Dependancy injection
+        // Dependency injection
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::never())

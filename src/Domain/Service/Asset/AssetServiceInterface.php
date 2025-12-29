@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Asset;
+namespace App\Domain\Service\Asset;
 
 use App\DTO\Asset\AssetInput;
 use App\Entity\Asset;

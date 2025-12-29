@@ -1,23 +1,28 @@
 <?php
 
-namespace App\Service\Screenshot;
+namespace App\Domain\Service\Screenshot;
 
+use App\Domain\Exception\NotFoundException\AssetNotFoundException;
 use App\Domain\Exception\NotFoundException\ScreenshotNotFoundException;
+use App\Domain\Exception\NotFoundException\TimeframeNotFoundException;
 use App\Domain\Exception\ValidationException\ScreenshotValidationException;
 use App\DTO\Screenshot\ScreenshotInput;
 use App\Entity\Screenshot;
+use App\Repository\Asset\AssetRepositoryInterface;
 use App\Repository\Screenshot\ScreenshotRepositoryInterface;
+use App\Repository\Timeframe\TimeframeRepositoryInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 use DateTimeImmutable;
-use DateTime;
 
 class ScreenshotService implements ScreenshotServiceInterface
 {
     public function __construct(
         private ScreenshotRepositoryInterface $repository,
+        private AssetRepositoryInterface $assetRepository,
+        private TimeframeRepositoryInterface $timeframeRepository,
         private EntityManagerInterface $em,
         private ValidatorInterface $validator
     ) {}
@@ -50,12 +55,24 @@ class ScreenshotService implements ScreenshotServiceInterface
             throw new ScreenshotValidationException($violations);
         }
 
+        // Related entities
+        $asset = $this->assetRepository->find($input->assetId);
+        if (!$asset) {
+            throw new AssetNotFoundException();
+        }
+        $timeframe = $this->timeframeRepository->find($input->timeframeId);
+        if (!$timeframe) {
+            throw new TimeframeNotFoundException();
+        }
+
         $screenshot = new Screenshot();
         $screenshot->setFilePath($input->filePath);
         $screenshot->setCreatedAt(new DateTimeImmutable($input->createdAt));
+        $screenshot->setAsset($asset);
+        $screenshot->setTimeframe($timeframe);
         $screenshot->setDescription($input->description);
-        $screenshot->setPeriodStart(new DateTime($input->periodStart));
-        $screenshot->setPeriodEnd(new DateTime($input->periodEnd));
+        $screenshot->setPeriodStart(new DateTimeImmutable($input->periodStart));
+        $screenshot->setPeriodEnd(new DateTimeImmutable($input->periodEnd));
         $screenshot->setSource($input->source);
 
         try {

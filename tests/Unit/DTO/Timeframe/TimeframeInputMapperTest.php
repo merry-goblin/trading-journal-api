@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\DTO\Timeframe;
+namespace App\Tests\Unit\DTO\Timeframe;
 
 use PHPUnit\Framework\TestCase;
 
@@ -11,7 +11,7 @@ class TimeframeInputMapperTest extends TestCase
 {
     /* fromArray method */
 
-    public function testFromStandardArray(): void
+    public function testFromArrayWithStandardArray(): void
     {
         // Mock data
         $fromArray = $this->createArray('M1', 60);
@@ -26,7 +26,7 @@ class TimeframeInputMapperTest extends TestCase
         $this->assertSame(60, $timeframeInput->seconds);
     }
 
-    public function testFromEmptyArray(): void
+    public function testFromArrayWithEmptyArray(): void
     {
         // Mock data
         $fromArray = [];
@@ -61,7 +61,7 @@ class TimeframeInputMapperTest extends TestCase
     {
         // Mock data
         $fromArray = $this->createArray(123, ['foo']);
-        
+
         // Start test
         $timeframeInputMapper = new TimeframeInputMapper();
         $timeframeInput = $timeframeInputMapper->fromArray($fromArray);

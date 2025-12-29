@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\Service;
+namespace App\Tests\Unit\Domain\Service;
 
 use App\Domain\Exception\NotFoundException\AssetNotFoundException;
 use PHPUnit\Framework\TestCase;
@@ -8,11 +8,11 @@ use PHPUnit\Framework\TestCase;
 use App\DTO\Asset\AssetInput;
 use App\Entity\Asset;
 
-use App\Service\Asset\AssetService;
+use App\Domain\Service\Asset\AssetService;
 use App\Repository\Asset\AssetRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 
-use App\Service\Asset\SymbolAlreadyExistsException;
+use App\Domain\Service\Asset\SymbolAlreadyExistsException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use App\Domain\Exception\ValidationException\AssetValidationException;
@@ -30,7 +30,7 @@ class AssetServiceTest extends TestCase
         // Mock data
         $expected = $this->createAsset(1, 'EURUSD', 'forex', '');
 
-        // Dependancy injections
+        // Dependency injections
         $assetRepository = $this->createMock(AssetRepositoryInterface::class);
         $assetRepository->expects(self::once())
             ->method('find')
@@ -54,7 +54,7 @@ class AssetServiceTest extends TestCase
         // Mock data
         $expected = null;
 
-        // Dependancy injections
+        // Dependency injections
         $assetRepository = $this->createMock(AssetRepositoryInterface::class);
         $assetRepository->expects(self::once())
             ->method('find')
@@ -80,7 +80,7 @@ class AssetServiceTest extends TestCase
         // Mock data
         $expected = $this->createAsset(1, 'EURUSD', 'forex', '');
 
-        // Dependancy injections
+        // Dependency injections
         $assetRepository = $this->createMock(AssetRepositoryInterface::class);
         $assetRepository->expects(self::once())
             ->method('findOneBy')
@@ -104,7 +104,7 @@ class AssetServiceTest extends TestCase
         // Mock data
         $expected = null;
 
-        // Dependancy injections
+        // Dependency injections
         $assetRepository = $this->createMock(AssetRepositoryInterface::class);
         $assetRepository->expects(self::once())
             ->method('findOneBy')
@@ -133,7 +133,7 @@ class AssetServiceTest extends TestCase
             $this->createAsset(2, 'EURGBP', 'forex', ''),
         ];
 
-        // Dependancy injections
+        // Dependency injections
         $assetRepository = $this->createMock(AssetRepositoryInterface::class);
         $assetRepository->expects(self::once())
             ->method('findAll')
@@ -157,7 +157,7 @@ class AssetServiceTest extends TestCase
         // Mock data
         $expectedList = [];
 
-        // Dependancy injections
+        // Dependency injections
         $assetRepository = $this->createMock(AssetRepositoryInterface::class);
         $assetRepository->expects(self::once())
             ->method('findAll')
@@ -182,7 +182,7 @@ class AssetServiceTest extends TestCase
         // Mock data
         $input = $this->createAssetInput('EURUSD', 'forex', '');
 
-        // Dependancy injection
+        // Dependency injection
         $assetRepository = $this->createStub(AssetRepositoryInterface::class);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())
@@ -218,7 +218,7 @@ class AssetServiceTest extends TestCase
             null
         );
 
-        // Dependancy injection
+        // Dependency injection
         $assetRepository = $this->createStub(AssetRepositoryInterface::class);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())
@@ -258,7 +258,7 @@ class AssetServiceTest extends TestCase
             ),
         ]);
 
-        // Dependancy injection
+        // Dependency injection
         $assetRepository = $this->createStub(AssetRepositoryInterface::class);
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::never())

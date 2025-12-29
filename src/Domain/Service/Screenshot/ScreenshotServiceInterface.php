@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Screenshot;
+namespace App\Domain\Service\Screenshot;
 
 use App\DTO\Screenshot\ScreenshotInput;
 use App\Entity\Screenshot;

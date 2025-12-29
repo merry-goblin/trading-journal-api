@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Timeframe;
+namespace App\Domain\Service\Timeframe;
 
 use Exception;
 

@@ -1,17 +1,19 @@
 <?php
 
-namespace App\Tests\DTO\Screenshot;
+namespace App\Tests\Unit\DTO\Screenshot;
 
 use PHPUnit\Framework\TestCase;
 
 use App\DTO\Screenshot\ScreenshotInput;
 use App\DTO\Screenshot\ScreenshotInputMapper;
 
+use TypeError;
+
 class ScreenshotInputMapperTest extends TestCase
 {
     /* fromArray method */
 
-    public function testFromStandardArray(): void
+    public function testFromArrayWithStandardArray(): void
     {
         // Mock data
         $fromArray = $this->createArray(
@@ -24,7 +26,7 @@ class ScreenshotInputMapperTest extends TestCase
             '',
             '2025-11-25 00:00:00',
             '2025-12-17 01:58:38',
-            ''
+            'manual'
         );
 
         // Start test
@@ -34,9 +36,53 @@ class ScreenshotInputMapperTest extends TestCase
         // Assertions
         $this->assertInstanceOf(ScreenshotInput::class, $screenshotInput);
         $this->assertSame('C:\Users\kelle\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files\EURUSD_H4_2025-12-17_01-58-38.png', $screenshotInput->filePath);
+        $this->assertSame('2025-12-29 00:14:00', $screenshotInput->createdAt);
+        $this->assertSame(1, $screenshotInput->assetId);
+        $this->assertSame(1, $screenshotInput->timeframeId);
+        $this->assertSame(null, $screenshotInput->observationId);
+        $this->assertSame(null, $screenshotInput->positionId);
+        $this->assertSame('', $screenshotInput->description);
+        $this->assertSame('2025-11-25 00:00:00', $screenshotInput->periodStart);
+        $this->assertSame('2025-12-17 01:58:38', $screenshotInput->periodEnd);
+        $this->assertSame('manual', $screenshotInput->source);
     }
 
-    /*public function testFromEmptyArray(): void
+    public function testFromArrayWithEmptyValuesForEmptiableParameters(): void
+    {
+        // Mock data
+        $fromArray = $this->createArray(
+            '',
+            '',
+            null,
+            null,
+            null,
+            null,
+            '',
+            null,
+            null,
+            ''
+        );
+
+        // Start test
+        $screenshotInputMapper = new ScreenshotInputMapper();
+        $screenshotInput = $screenshotInputMapper->fromArray($fromArray);
+
+        // Assertions
+        $this->assertInstanceOf(ScreenshotInput::class, $screenshotInput);
+        $this->assertSame('', $screenshotInput->filePath);
+        $this->assertSame('', $screenshotInput->createdAt);
+        $this->assertSame(0, $screenshotInput->assetId);
+        $this->assertSame(0, $screenshotInput->timeframeId);
+        $this->assertSame(null, $screenshotInput->observationId);
+        $this->assertSame(null, $screenshotInput->positionId);
+        $this->assertSame('', $screenshotInput->description);
+        $this->assertSame('', $screenshotInput->periodStart);
+        $this->assertSame('', $screenshotInput->periodEnd);
+        $this->assertSame('', $screenshotInput->source);
+
+    }
+
+    public function testFromArrayWithEmptyArray(): void
     {
         // Mock data
         $fromArray = [];
@@ -47,43 +93,17 @@ class ScreenshotInputMapperTest extends TestCase
 
         // Assertions
         $this->assertInstanceOf(ScreenshotInput::class, $screenshotInput);
-        $this->assertSame('', $screenshotInput->symbol);
-        $this->assertSame('', $screenshotInput->type);
+        $this->assertSame('', $screenshotInput->filePath);
+        $this->assertSame('', $screenshotInput->createdAt);
+        $this->assertSame(0, $screenshotInput->assetId);
+        $this->assertSame(0, $screenshotInput->timeframeId);
+        $this->assertSame(null, $screenshotInput->observationId);
+        $this->assertSame(null, $screenshotInput->positionId);
         $this->assertSame('', $screenshotInput->description);
-
+        $this->assertSame('', $screenshotInput->periodStart);
+        $this->assertSame('', $screenshotInput->periodEnd);
+        $this->assertSame('', $screenshotInput->source);
     }
-
-    public function testFromArrayWithNullValues(): void
-    {
-        // Mock data
-        $fromArray = $this->createArray(null, null, null);
-
-        // Start test
-        $screenshotInputMapper = new ScreenshotInputMapper();
-        $screenshotInput = $screenshotInputMapper->fromArray($fromArray);
-
-        // Assertions
-        $this->assertInstanceOf(ScreenshotInput::class, $screenshotInput);
-        $this->assertSame('', $screenshotInput->symbol);
-        $this->assertSame('', $screenshotInput->type);
-        $this->assertSame('', $screenshotInput->description);
-    }
-
-    public function testFromArrayWithWeirdValues(): void
-    {
-        // Mock data
-        $fromArray = $this->createArray(123, true, ['foo']);
-        
-        // Start test
-        $screenshotInputMapper = new ScreenshotInputMapper();
-        $screenshotInput = $screenshotInputMapper->fromArray($fromArray);
-
-        // Assertions
-        $this->assertInstanceOf(ScreenshotInput::class, $screenshotInput);
-        $this->assertSame('123', $screenshotInput->symbol);
-        $this->assertSame('1', $screenshotInput->type);
-        $this->assertSame('', $screenshotInput->description);
-    }*/
 
     /* private methods */
 

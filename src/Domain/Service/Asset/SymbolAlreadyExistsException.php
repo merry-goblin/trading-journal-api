@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Asset;
+namespace App\Domain\Service\Asset;
 
 use Exception;
 

@@ -25,7 +25,7 @@ class ChartObservation
     private ?Timeframe $timeframe = null;
 
     #[ORM\Column(name: 'observed_at')]
-    private ?\DateTime $observedAt = null;
+    private ?\DateTimeImmutable $observedAt = null;
 
     #[ORM\Column(length: 25)]
     private ?string $trend = null;
@@ -54,6 +54,13 @@ class ChartObservation
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getAsset(): ?Asset

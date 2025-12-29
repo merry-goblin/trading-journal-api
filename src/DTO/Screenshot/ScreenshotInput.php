@@ -3,7 +3,6 @@
 namespace App\DTO\Screenshot;
 
 use Symfony\Component\Validator\Constraints as Assert;
-use DateTime;
 
 class ScreenshotInput
 {
@@ -13,22 +12,21 @@ class ScreenshotInput
     #[Assert\Length(min: 1, max: 255)]
     public string $filePath;
 
-    #[Assert\NotNull]
-    public string $createdAt;
+    public ?string $createdAt;
 
     #[Assert\NotNull]
     #[Assert\Positive]
-    public float $assetId;
+    public int $assetId;
 
     #[Assert\NotNull]
     #[Assert\Positive]
-    public float $timeframeId;
+    public int $timeframeId;
 
     #[Assert\Positive]
-    public float $observationId;
+    public ?int $observationId;
 
     #[Assert\Positive]
-    public float $positionId;
+    public ?int $positionId;
 
     public string $description;
 
@@ -37,8 +35,8 @@ class ScreenshotInput
 
     #[Assert\NotNull]
     public string $periodEnd;
-    
+
     #[Assert\NotBlank]
-    public string $source;
+    public string $source; // manual, auto, import
 
 }

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service\Asset;
+namespace App\Domain\Service\Asset;
 
 use App\Domain\Exception\NotFoundException\AssetNotFoundException;
 use App\Domain\Exception\ValidationException\AssetValidationException;

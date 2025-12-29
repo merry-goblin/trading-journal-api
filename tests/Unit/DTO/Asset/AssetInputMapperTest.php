@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Tests\DTO\Asset;
+namespace App\Tests\Unit\DTO\Asset;
 
 use PHPUnit\Framework\TestCase;
 
@@ -11,7 +11,7 @@ class AssetInputMapperTest extends TestCase
 {
     /* fromArray method */
 
-    public function testFromStandardArray(): void
+    public function testFromArrayWithStandardArray(): void
     {
         // Mock data
         $fromArray = $this->createArray('EURUSD', 'forex', 'desc');
@@ -27,7 +27,7 @@ class AssetInputMapperTest extends TestCase
         $this->assertSame('desc', $assetInput->description);
     }
 
-    public function testFromEmptyArray(): void
+    public function testFromArrayWithEmptyArray(): void
     {
         // Mock data
         $fromArray = [];
@@ -64,7 +64,7 @@ class AssetInputMapperTest extends TestCase
     {
         // Mock data
         $fromArray = $this->createArray(123, true, ['foo']);
-        
+
         // Start test
         $assetInputMapper = new AssetInputMapper();
         $assetInput = $assetInputMapper->fromArray($fromArray);

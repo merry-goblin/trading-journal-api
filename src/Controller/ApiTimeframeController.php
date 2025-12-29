@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use App\DTO\Timeframe\TimeframeInputMapperInterface;
 use App\DTO\Timeframe\TimeframeOutputMapperInterface;
 use App\Entity\Timeframe;
-use App\Service\Timeframe\TimeframeServiceInterface;
+use App\Domain\Service\Timeframe\TimeframeServiceInterface;
 
 final class ApiTimeframeController extends AbstractController
 {

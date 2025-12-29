@@ -11,7 +11,7 @@ use Symfony\Component\Routing\Attribute\Route;
 use App\DTO\Screenshot\ScreenshotInputMapperInterface;
 use App\DTO\Screenshot\ScreenshotOutputMapperInterface;
 use App\Entity\Screenshot;
-use App\Service\Screenshot\ScreenshotServiceInterface;
+use App\Domain\Service\Screenshot\ScreenshotServiceInterface;
 
 final class ApiScreenshotController extends AbstractController
 {

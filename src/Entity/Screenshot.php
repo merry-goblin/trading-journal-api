@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ScreenshotRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
+use DateTimeImmutable;
 
 #[ORM\Entity(repositoryClass: ScreenshotRepository::class)]
 class Screenshot
@@ -18,7 +19,7 @@ class Screenshot
     private ?string $filePath = null;
 
     #[ORM\Column(name: 'created_at')]
-    private ?\DateTimeImmutable $createdAt = null;
+    private ?DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne]
     #[ORM\JoinColumn(nullable: false)]
@@ -38,10 +39,10 @@ class Screenshot
     private ?string $description = null;
 
     #[ORM\Column]
-    private ?\DateTime $periodStart = null;
+    private ?DateTimeImmutable $periodStart = null;
 
     #[ORM\Column]
-    private ?\DateTime $periodEnd = null;
+    private ?DateTimeImmutable $periodEnd = null;
 
     #[ORM\Column(length: 10)]
     private ?string $source = null;
@@ -49,6 +50,13 @@ class Screenshot
     public function getId(): ?int
     {
         return $this->id;
+    }
+
+    public function setId(int $id): static
+    {
+        $this->id = $id;
+
+        return $this;
     }
 
     public function getFilePath(): ?string
@@ -135,24 +143,24 @@ class Screenshot
         return $this;
     }
 
-    public function getPeriodStart(): ?\DateTime
+    public function getPeriodStart(): ?\DateTimeImmutable
     {
         return $this->periodStart;
     }
 
-    public function setPeriodStart(\DateTime $periodStart): static
+    public function setPeriodStart(\DateTimeImmutable $periodStart): static
     {
         $this->periodStart = $periodStart;
 
         return $this;
     }
 
-    public function getPeriodEnd(): ?\DateTime
+    public function getPeriodEnd(): ?\DateTimeImmutable
     {
         return $this->periodEnd;
     }
 
-    public function setPeriodEnd(\DateTime $periodEnd): static
+    public function setPeriodEnd(\DateTimeImmutable $periodEnd): static
     {
         $this->periodEnd = $periodEnd;
 

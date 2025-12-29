@@ -2,7 +2,9 @@
 
 namespace App\DTO\Asset;
 
-class AssetInputMapper implements AssetInputMapperInterface
+use App\DTO\AbstractMapper;
+
+class AssetInputMapper extends AbstractMapper implements AssetInputMapperInterface
 {
     public function fromArray(array $data): AssetInput
     {
@@ -13,19 +15,5 @@ class AssetInputMapper implements AssetInputMapperInterface
         $dto->description = $this->stringOrEmpty($data['description'] ?? null);
 
         return $dto;
-    }
-
-    private function stringOrEmpty(mixed $value): string
-    {
-        if ($value === null) {
-            return '';
-        }
-
-        if (is_scalar($value)) {
-            return trim((string) $value);
-        }
-
-        // arrays, objects, etc.
-        return '';
     }
 }
