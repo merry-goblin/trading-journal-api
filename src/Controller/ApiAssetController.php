@@ -16,6 +16,7 @@ use App\Domain\Service\Asset\AssetServiceInterface;
 final class ApiAssetController extends AbstractController
 {
     #[Route('/api/assets', name: 'listAssets', methods: ['GET'])]
+    #[Route('/frontApi/assets', name: 'frontListAssets', methods: ['GET'])]
     public function list(
         AssetServiceInterface $assetService,
         AssetOutputMapperInterface $outputMapper): JsonResponse
