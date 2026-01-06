@@ -21,7 +21,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/timeframes';
-        $this->requestTimeframesUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $data = $this->assertJsonResponse();
@@ -38,7 +38,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/timeframes';
-        $this->requestTimeframesUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $data = $this->assertJsonResponse();
@@ -69,7 +69,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/timeframes';
-        $this->requestTimeframesUrl($method, $path, $headers);
+        $this->requestUrl($method, $path, $headers);
 
         // Assertions
         $this->assertResponseStatusCodeSame(401);
@@ -95,7 +95,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/timeframe/'.$timeframe->getId();
-        $this->requestTimeframesUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $data = $this->assertJsonResponse();
@@ -110,7 +110,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/timeframe/9999';
-        $this->requestTimeframesUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $this->assertResponseStatusCodeSame(404);
@@ -123,7 +123,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/timeframe/FOO';
-        $this->requestTimeframesUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $this->assertResponseStatusCodeSame(404);
@@ -141,7 +141,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/timeframe/label/'.$timeframe->getLabel();
-        $this->requestTimeframesUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $data = $this->assertJsonResponse();
@@ -156,7 +156,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/timeframe/label/NOTFOUND';
-        $this->requestTimeframesUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $this->assertResponseStatusCodeSame(404);
@@ -175,7 +175,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'POST';
         $path = '/api/timeframe';
-        $this->requestTimeframesUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
         // Assertions
         $data = $this->assertJsonResponse();
@@ -190,7 +190,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'POST';
         $path = '/api/timeframe';
-        $this->requestTimeframesUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
         // Assertions
         $this->assertResponseStatusCodeSame(400);
@@ -207,23 +207,9 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         // Start test
         $method = 'POST';
         $path = '/api/timeframe';
-        $this->requestTimeframesUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
         // Assertions
         $this->assertResponseStatusCodeSame(422);
-    }
-
-    /* private */
-
-    private function requestTimeframesUrl(string $method, string $path, array $headers, ?string $content = null): void
-    {
-        $this->client->request(
-            $method,
-            $path,
-            [],
-            [],
-            $headers,
-            $content
-        );
     }
 }

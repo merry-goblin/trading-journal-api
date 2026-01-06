@@ -8,8 +8,6 @@ use App\Tests\Integration\Factory\AssetFactory;
 
 use PHPUnit\Framework\Attributes\DataProvider;
 
-use InvalidArgumentException;
-
 class ApiAssetControllerTest extends AbstractTestApiController
 {
     use ApiTestAuthTrait;
@@ -21,7 +19,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/assets';
-        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $data = $this->assertJsonResponse();
@@ -38,7 +36,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/assets';
-        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $data = $this->assertJsonResponse();
@@ -70,7 +68,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/assets';
-        $this->requestAssetsUrl($method, $path, $headers);
+        $this->requestUrl($method, $path, $headers);
 
         // Assertions
         $this->assertResponseStatusCodeSame(401);
@@ -96,7 +94,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/asset/'.$asset->getId();
-        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $data = $this->assertJsonResponse();
@@ -112,7 +110,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/asset/9999';
-        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $this->assertResponseStatusCodeSame(404);
@@ -125,7 +123,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/asset/FOO';
-        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $this->assertResponseStatusCodeSame(404);
@@ -143,7 +141,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/asset/symbol/'.$asset->getSymbol();
-        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $data = $this->assertJsonResponse();
@@ -159,7 +157,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'GET';
         $path = '/api/asset/symbol/NOTFOUND';
-        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path));
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path));
 
         // Assertions
         $this->assertResponseStatusCodeSame(404);
@@ -179,7 +177,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'POST';
         $path = '/api/asset';
-        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
         // Assertions
         $data = $this->assertJsonResponse();
@@ -194,7 +192,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'POST';
         $path = '/api/asset';
-        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
         // Assertions
         $this->assertResponseStatusCodeSame(400);
@@ -212,23 +210,10 @@ class ApiAssetControllerTest extends AbstractTestApiController
         // Start test
         $method = 'POST';
         $path = '/api/asset';
-        $this->requestAssetsUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
+        $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
         // Assertions
         $this->assertResponseStatusCodeSame(422);
     }
 
-    /* private */
-
-    private function requestAssetsUrl(string $method, string $path, array $headers, ?string $content = null): void
-    {
-        $this->client->request(
-            $method,
-            $path,
-            [],
-            [],
-            $headers,
-            $content
-        );
-    }
 }

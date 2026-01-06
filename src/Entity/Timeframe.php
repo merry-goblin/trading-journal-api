@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Repository\TimeframeRepository;
+use App\Repository\Timeframe\TimeframeRepository;
 use Doctrine\ORM\Mapping as ORM;
 
 #[ORM\Entity(repositoryClass: TimeframeRepository::class)]

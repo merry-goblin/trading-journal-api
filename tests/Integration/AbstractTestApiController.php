@@ -6,6 +6,7 @@ use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 use Doctrine\ORM\EntityManagerInterface;
 use Doctrine\ORM\Tools\SchemaTool;
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 
 abstract class AbstractTestApiController extends WebTestCase
 {
@@ -30,6 +31,18 @@ abstract class AbstractTestApiController extends WebTestCase
         );
     }
 
+    protected function requestUrl(string $method, string $path, array $headers, ?string $content = null): void
+    {
+        $this->client->request(
+            $method,
+            $path,
+            [],
+            [],
+            $headers,
+            $content
+        );
+    }
+
     /* =====================
      * JSON assertions
      * ===================== */
@@ -50,4 +63,5 @@ abstract class AbstractTestApiController extends WebTestCase
         $data = $this->assertJsonResponse($status);
         $this->assertSame($message, $data['error']);
     }
+
 }

@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Repository\ScreenshotRepository;
+use App\Repository\Screenshot\ScreenshotRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 use DateTimeImmutable;
