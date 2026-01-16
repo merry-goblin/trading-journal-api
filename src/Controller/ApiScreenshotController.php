@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use SplFileObject;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -27,7 +28,7 @@ final class ApiScreenshotController extends AbstractController
         return $this->json($output);
     }
 
-    #[Route('/api/screenshot/{id}', name: 'findScreenshotById', methods: ['GET'], requirements: ['id' => '\d+'])]
+    #[Route('/api/screenshot/{id}', name: 'findScreenshotById', requirements: ['id' => '\d+'], methods: ['GET'])]
     public function show(
         ScreenshotServiceInterface $screenshotService,
         ScreenshotOutputMapperInterface $outputMapper,
@@ -48,6 +49,7 @@ final class ApiScreenshotController extends AbstractController
         ScreenshotServiceInterface $screenshotService): JsonResponse
     {
         // Input data
+        $file = $request->files->get('file'); // UploadedFile
         $data = json_decode($request->getContent(), true);
         if (!$data) {
             return $this->json(['error' => 'Invalid JSON'], 400);
@@ -55,7 +57,11 @@ final class ApiScreenshotController extends AbstractController
         $input = $inputMapper->fromArray($data);
 
         // Entity creation
-        $screenshot = $screenshotService->create($input);
+        $screenshot = $screenshotService->create(
+            $input,
+            new SplFileObject($file->getPathname()),
+            $file->getClientMimeType()
+        );
 
         // Response
         $output = $outputMapper->fromEntity($screenshot);

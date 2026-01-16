@@ -6,8 +6,11 @@ use App\Domain\Exception\NotFoundException\AssetNotFoundException;
 use App\Domain\Exception\NotFoundException\ScreenshotNotFoundException;
 use App\Domain\Exception\NotFoundException\TimeframeNotFoundException;
 use App\Domain\Exception\ValidationException\ScreenshotValidationException;
+use App\Domain\Service\Screenshot\ScreenshotStorage\ScreenshotStorageInterface;
 use App\DTO\Screenshot\ScreenshotInput;
+use App\Entity\Asset;
 use App\Entity\Screenshot;
+use App\Entity\Timeframe;
 use App\Repository\Asset\AssetRepositoryInterface;
 use App\Repository\Screenshot\ScreenshotRepositoryInterface;
 use App\Repository\Timeframe\TimeframeRepositoryInterface;
@@ -16,6 +19,7 @@ use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 use DateTimeImmutable;
+use SplFileObject;
 
 class ScreenshotService implements ScreenshotServiceInterface
 {
@@ -24,7 +28,8 @@ class ScreenshotService implements ScreenshotServiceInterface
         private AssetRepositoryInterface $assetRepository,
         private TimeframeRepositoryInterface $timeframeRepository,
         private EntityManagerInterface $em,
-        private ValidatorInterface $validator
+        private ValidatorInterface $validator,
+        private ScreenshotStorageInterface $screenshotStorage
     ) {}
 
     public function list(): array
@@ -47,7 +52,11 @@ class ScreenshotService implements ScreenshotServiceInterface
     /**
      * @throws FilePathAlreadyExistsException
      */
-    public function create(ScreenshotInput $input): Screenshot
+    public function create(
+        ScreenshotInput $input,
+        SplFileObject $file,
+        ?string $mimeType
+    ): Screenshot
     {
         // Validation
         $violations = $this->validator->validate($input);
@@ -65,8 +74,10 @@ class ScreenshotService implements ScreenshotServiceInterface
             throw new TimeframeNotFoundException();
         }
 
+        $storageKey = $this->storeScreenshotFile($file, $mimeType, $asset, $timeframe); // Screenshot storage
+
         $screenshot = new Screenshot();
-        $screenshot->setFilePath($input->filePath);
+        $screenshot->setFilePath($storageKey);
         $screenshot->setCreatedAt(new DateTimeImmutable($input->createdAt));
         $screenshot->setAsset($asset);
         $screenshot->setTimeframe($timeframe);
@@ -83,5 +94,24 @@ class ScreenshotService implements ScreenshotServiceInterface
         }
 
         return $screenshot;
+    }
+
+    private function storeScreenshotFile(
+        SplFileObject $file,
+        ?string $mimeType,
+        Asset $asset,
+        Timeframe $timeframe
+    )
+    {
+        $storageKey = sprintf(
+            '%s/%s/%s.png',
+            $asset->getSymbol(),
+            $timeframe->getLabel(),
+            time()
+        );
+
+        $this->screenshotStorage->store($storageKey, $file, $mimeType);
+
+        return $storageKey;
     }
 }

@@ -14,7 +14,7 @@ class MeControllerTest extends AbstractTestApiController
 
     /* me */
 
-    public function testMe(): void
+    public function testAuthenticatedUserCanAccessMeEndpoint(): void
     {
         // Fake DB data
         $hasher = self::getContainer()->get(TestPasswordHasher::class);
@@ -25,16 +25,27 @@ class MeControllerTest extends AbstractTestApiController
         $method = 'GET';
         $path = '/frontApi/me';
         $headers = $this->getJwtAuthHeaders();
-        $jsonContent = json_encode([
-            'email' => 'test@example.com',
-            'password' => 'password123',
-        ]);
-        $this->requestUrl($method, $path, $headers, $jsonContent);
+        $this->requestUrl($method, $path, $headers);
 
         // Assertions
         $data = $this->assertJsonResponse(Response::HTTP_OK);
-        var_dump($data);
-        //$this->assertArrayHasKey('email', $data);
+        $this->assertArrayHasKey('id', $data);
+        $this->assertIsInt($data['id']);
+        $this->assertSame('test@example.com', $data['email']);
     }
 
+    public function testMeRequiresAuthentication(): void
+    {
+        // Start test
+        $method = 'GET';
+        $path = '/frontApi/me';
+        $headers = [
+            'CONTENT_TYPE' => 'application/json',
+            'HTTP_ACCEPT' => 'application/json',
+        ];
+        $this->requestUrl($method, $path, $headers);
+
+        // Assertions
+        $this->assertResponseStatusCodeSame(Response::HTTP_UNAUTHORIZED);
+    }
 }

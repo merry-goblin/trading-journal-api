@@ -18,3 +18,20 @@ services:
 
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones
+
+    App\Security\Api\ApiRequestValidator:
+        arguments:
+            $apiToken: '%env(API_TOKEN)%'
+            $hmacSecret: '%env(HMAC_SECRET_KEY)%'
+
+    App\Security\Api\CoordinatedUniversalTime: ~
+
+    App\Security\Api\ClockInterface:
+        alias: App\Security\Api\CoordinatedUniversalTime
+
+    App\Domain\Service\Screenshot\ScreenshotStorage\LocalScreenshotStorage:
+        arguments:
+            $basePath: 'C:\wamp64\www\storage\screenshots'
+
+    App\Domain\Service\Screenshot\ScreenshotStorage\ScreenshotStorageInterface:
+        alias: App\Domain\Service\Screenshot\ScreenshotStorage\LocalScreenshotStorage

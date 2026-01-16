@@ -11,14 +11,14 @@ class ScreenshotOutputMapper
         $dto = new ScreenshotOutput();
         $dto->id = $screenshot->getId();
         $dto->filePath = $screenshot->getFilePath();
-        $dto->createdAt = $screenshot->getCreatedAt() ? $screenshot->getCreatedAt()->format('Y-m-d H:i:s') : null;
-        $dto->assetId = $screenshot->getAsset() ? $screenshot->getAsset()->getId() : null;
-        $dto->timeframeId = $screenshot->getTimeframe() ? $screenshot->getTimeframe()->getId() : null;
-        $dto->observationId = $screenshot->getObservation() ? $screenshot->getObservation()->getId() : null;
-        $dto->positionId = $screenshot->getPosition() ? $screenshot->getPosition()->getId() : null;
+        $dto->createdAt = $screenshot->getCreatedAt()?->format('Y-m-d H:i:s');
+        $dto->assetId = $screenshot->getAsset()?->getId();
+        $dto->timeframeId = $screenshot->getTimeframe()?->getId();
+        $dto->observationId = $screenshot->getObservation()?->getId();
+        $dto->positionId = $screenshot->getPosition()?->getId();
         $dto->description = $screenshot->getDescription();
-        $dto->periodStart = $screenshot->getPeriodStart() ? $screenshot->getPeriodStart()->format('Y-m-d H:i:s') : null;
-        $dto->periodEnd = $screenshot->getPeriodEnd() ? $screenshot->getPeriodEnd()->format('Y-m-d H:i:s') : null;
+        $dto->periodStart = $screenshot->getPeriodStart()?->format('Y-m-d H:i:s');
+        $dto->periodEnd = $screenshot->getPeriodEnd()?->format('Y-m-d H:i:s');
         $dto->source = $screenshot->getSource();
 
         return $dto;

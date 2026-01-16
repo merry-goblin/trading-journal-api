@@ -11,8 +11,6 @@ class UserOutputMapper implements UserOutputMapperInterface
         $dto = new UserOutput();
         $dto->id = $user->getId();
         $dto->email = $user->getEmail();
-        $dto->password = $user->getPassword();
-        $dto->roles = json_encode($user->getRoles());
 
         return $dto;
     }
