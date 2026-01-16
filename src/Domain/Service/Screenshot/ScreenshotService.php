@@ -101,7 +101,7 @@ class ScreenshotService implements ScreenshotServiceInterface
         ?string $mimeType,
         Asset $asset,
         Timeframe $timeframe
-    )
+    ): string
     {
         $storageKey = sprintf(
             '%s/%s/%s.png',

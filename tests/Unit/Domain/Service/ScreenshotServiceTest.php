@@ -4,6 +4,7 @@ namespace App\Tests\Unit\Domain\Service;
 
 use App\Domain\Exception\NotFoundException\ScreenshotNotFoundException;
 use App\Domain\Service\Screenshot\FilePathAlreadyExistsException;
+use App\Domain\Service\Screenshot\ScreenshotStorage\ScreenshotStorageInterface;
 use App\Entity\Asset;
 use App\Entity\ChartObservation;
 use App\Entity\Position;
@@ -64,9 +65,10 @@ class ScreenshotServiceTest extends TestCase
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
         $em = $this->createStub(EntityManagerInterface::class);
         $validator = $this->createStub(ValidatorInterface::class);
+        $screenshotStorage = $this->createStub(ScreenshotStorageInterface::class);
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
         $screenshot = $screenshotService->get(1);
 
         // Assertions
@@ -92,13 +94,14 @@ class ScreenshotServiceTest extends TestCase
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
         $em = $this->createStub(EntityManagerInterface::class);
         $validator = $this->createStub(ValidatorInterface::class);
+        $screenshotStorage = $this->createStub(ScreenshotStorageInterface::class);
 
         // Assertions
         $this->expectException(ScreenshotNotFoundException::class);
         $this->expectExceptionMessage('Screenshot not found');
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
         $screenshotService->get(9999);
     }
 
@@ -152,9 +155,10 @@ class ScreenshotServiceTest extends TestCase
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
         $em = $this->createStub(EntityManagerInterface::class);
         $validator = $this->createStub(ValidatorInterface::class);
+        $screenshotStorage = $this->createStub(ScreenshotStorageInterface::class);
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
         $screenshotList = $screenshotService->list();
 
         // Assertions
@@ -178,9 +182,10 @@ class ScreenshotServiceTest extends TestCase
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
         $em = $this->createStub(EntityManagerInterface::class);
         $validator = $this->createStub(ValidatorInterface::class);
+        $screenshotStorage = $this->createStub(ScreenshotStorageInterface::class);
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
         $screenshotList = $screenshotService->list();
 
         // Assertions
@@ -207,6 +212,8 @@ class ScreenshotServiceTest extends TestCase
             '2025-12-17 01:58:38',
             'manual'
         );
+        $file = $this->createStub(\SplFileObject::class);
+        $mimeType = 'image/png';
 
         // Dependency injection
         $screenshotRepository = $this->createStub(ScreenshotRepositoryInterface::class);
@@ -234,17 +241,22 @@ class ScreenshotServiceTest extends TestCase
             ->method('validate')
             ->willReturn(new ConstraintViolationList())
         ;
+        $screenshotStorage = $this->createMock(ScreenshotStorageInterface::class);
+        $screenshotStorage->expects(self::once())
+            ->method('store')
+        ;
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator);
-        $screenshot = $screenshotService->create($input);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
+        $screenshot = $screenshotService->create($input, $file, $mimeType);
 
         // Assertions
         $this->assertIsObject($screenshot);
         $this->assertInstanceOf(Screenshot::class, $screenshot);
-        $this->assertSame($input->filePath, $screenshot->getFilePath());
+        $this->assertMatchesRegularExpression('#EURUSD/M1/\d*.png#', $screenshot->getFilePath());
         $this->assertSame($input->createdAt, $screenshot->getCreatedAt()->format('Y-m-d H:i:s'));
-        //$this->assertSame($input->assetId, $screenshot->getDescription());
+        $this->assertSame($asset, $screenshot->getAsset());
+        $this->assertSame($timeframe, $screenshot->getTimeframe());
     }
 
     public function testCreateScreenshotWithFilePathDuplication(): void
@@ -264,6 +276,8 @@ class ScreenshotServiceTest extends TestCase
             '2025-12-17 01:58:38',
             'manual'
         );
+        $file = $this->createStub(\SplFileObject::class);
+        $mimeType = 'image/png';
         $exception = new UniqueConstraintViolationException(
             $this->createStub(DriverException::class),
             null
@@ -296,13 +310,14 @@ class ScreenshotServiceTest extends TestCase
             ->method('validate')
             ->willReturn(new ConstraintViolationList())
         ;
+        $screenshotStorage = $this->createStub(ScreenshotStorageInterface::class);
 
         // Assertions
         $this->expectException(FilePathAlreadyExistsException::class);
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator);
-        $screenshotService->create($input);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
+        $screenshotService->create($input, $file, $mimeType);
     }
 
     /*public function testCreateScreenshotWithInvalidPayloadThrowsException(): void
@@ -341,7 +356,7 @@ class ScreenshotServiceTest extends TestCase
         $this->expectException(ScreenshotValidationException::class);
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
         $screenshotService->create($input);
     }*/
 
