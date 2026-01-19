@@ -4,12 +4,11 @@ namespace App\DTO\Screenshot;
 
 use App\DTO\AbstractMapper;
 
-class ScreenshotInputMapper extends AbstractMapper
+class ScreenshotInputMapper extends AbstractMapper implements ScreenshotInputMapperInterface
 {
     public function fromArray(array $data): ScreenshotInput
     {
         $dto = new ScreenshotInput();
-        $dto->filePath = $this->stringOrEmpty($data['filePath'] ?? '');
         $dto->createdAt = $data['createdAt'] ?? '';
         $dto->assetId = $this->intOrEmpty($data['assetId'] ?? null);
         $dto->timeframeId = $this->intOrEmpty($data['timeframeId'] ?? null);

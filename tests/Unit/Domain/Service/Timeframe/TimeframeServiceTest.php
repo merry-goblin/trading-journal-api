@@ -1,22 +1,18 @@
 <?php
 
-namespace App\Tests\Unit\Domain\Service;
+namespace App\Tests\Unit\Domain\Service\Timeframe;
 
 use App\Domain\Exception\NotFoundException\TimeframeNotFoundException;
-use PHPUnit\Framework\TestCase;
-
+use App\Domain\Exception\ValidationException\TimeframeValidationException;
+use App\Domain\Service\Timeframe\LabelAlreadyExistsException;
+use App\Domain\Service\Timeframe\TimeframeService;
 use App\DTO\Timeframe\TimeframeInput;
 use App\Entity\Timeframe;
-
-use App\Domain\Service\Timeframe\TimeframeService;
 use App\Repository\Timeframe\TimeframeRepositoryInterface;
-use Doctrine\ORM\EntityManagerInterface;
-
-use App\Domain\Service\Timeframe\LabelAlreadyExistsException;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Driver\Exception as DriverException;
-use App\Domain\Exception\ValidationException\TimeframeValidationException;
-
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;

@@ -90,7 +90,7 @@ class ScreenshotService implements ScreenshotServiceInterface
             $this->em->persist($screenshot);
             $this->em->flush();
         } catch (UniqueConstraintViolationException $e) {
-            throw new FilePathAlreadyExistsException($input->filePath.' file path already exists');
+            throw new FilePathAlreadyExistsException($storageKey.' storage key already exists');
         }
 
         return $screenshot;

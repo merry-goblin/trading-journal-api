@@ -1,22 +1,18 @@
 <?php
 
-namespace App\Tests\Unit\Domain\Service;
+namespace App\Tests\Unit\Domain\Service\Asset;
 
 use App\Domain\Exception\NotFoundException\AssetNotFoundException;
-use PHPUnit\Framework\TestCase;
-
+use App\Domain\Exception\ValidationException\AssetValidationException;
+use App\Domain\Service\Asset\AssetService;
+use App\Domain\Service\Asset\SymbolAlreadyExistsException;
 use App\DTO\Asset\AssetInput;
 use App\Entity\Asset;
-
-use App\Domain\Service\Asset\AssetService;
 use App\Repository\Asset\AssetRepositoryInterface;
-use Doctrine\ORM\EntityManagerInterface;
-
-use App\Domain\Service\Asset\SymbolAlreadyExistsException;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\DBAL\Driver\Exception as DriverException;
-use App\Domain\Exception\ValidationException\AssetValidationException;
-
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\ConstraintViolation;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;

@@ -29,9 +29,6 @@ class LocalScreenshotStorage implements ScreenshotStorageInterface
         while (!$file->eof()) {
             $destination->fwrite($file->fread(8192));
         }
-
-        // Optionnel : suppression du fichier source si c'est un "move logique"
-        // unlink($file->getRealPath());
     }
 
     public function read(string $key): SplFileObject

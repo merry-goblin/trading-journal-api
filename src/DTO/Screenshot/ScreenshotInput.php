@@ -8,10 +8,6 @@ class ScreenshotInput
 {
     public int $id;
 
-    #[Assert\NotBlank]
-    #[Assert\Length(min: 1, max: 255)]
-    public string $filePath;
-
     public ?string $createdAt;
 
     #[Assert\NotNull]

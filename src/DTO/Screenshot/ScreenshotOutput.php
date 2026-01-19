@@ -4,4 +4,7 @@ namespace App\DTO\Screenshot;
 
 use App\Entity\Screenshot;
 
-class ScreenshotOutput extends ScreenshotInput {}
+class ScreenshotOutput extends ScreenshotInput
+{
+    public string $filePath;
+}

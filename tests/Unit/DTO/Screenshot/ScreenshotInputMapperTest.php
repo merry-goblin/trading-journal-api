@@ -17,7 +17,6 @@ class ScreenshotInputMapperTest extends TestCase
     {
         // Mock data
         $fromArray = $this->createArray(
-            'C:\Users\kelle\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files\EURUSD_H4_2025-12-17_01-58-38.png',
             '2025-12-29 00:14:00',
             1,
             1,
@@ -35,7 +34,6 @@ class ScreenshotInputMapperTest extends TestCase
 
         // Assertions
         $this->assertInstanceOf(ScreenshotInput::class, $screenshotInput);
-        $this->assertSame('C:\Users\kelle\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files\EURUSD_H4_2025-12-17_01-58-38.png', $screenshotInput->filePath);
         $this->assertSame('2025-12-29 00:14:00', $screenshotInput->createdAt);
         $this->assertSame(1, $screenshotInput->assetId);
         $this->assertSame(1, $screenshotInput->timeframeId);
@@ -51,7 +49,6 @@ class ScreenshotInputMapperTest extends TestCase
     {
         // Mock data
         $fromArray = $this->createArray(
-            '',
             '',
             null,
             null,
@@ -69,7 +66,6 @@ class ScreenshotInputMapperTest extends TestCase
 
         // Assertions
         $this->assertInstanceOf(ScreenshotInput::class, $screenshotInput);
-        $this->assertSame('', $screenshotInput->filePath);
         $this->assertSame('', $screenshotInput->createdAt);
         $this->assertSame(0, $screenshotInput->assetId);
         $this->assertSame(0, $screenshotInput->timeframeId);
@@ -93,7 +89,6 @@ class ScreenshotInputMapperTest extends TestCase
 
         // Assertions
         $this->assertInstanceOf(ScreenshotInput::class, $screenshotInput);
-        $this->assertSame('', $screenshotInput->filePath);
         $this->assertSame('', $screenshotInput->createdAt);
         $this->assertSame(0, $screenshotInput->assetId);
         $this->assertSame(0, $screenshotInput->timeframeId);
@@ -108,7 +103,6 @@ class ScreenshotInputMapperTest extends TestCase
     /* private methods */
 
     private function createArray(
-        mixed $filePath,
         mixed $createdAt,
         mixed $assetId,
         mixed $timeframeId,
@@ -120,7 +114,6 @@ class ScreenshotInputMapperTest extends TestCase
         mixed $source
     ): array {
         return [
-            'filePath' => $filePath,
             'createdAt' => $createdAt,
             'assetId' => $assetId,
             'timeframeId' => $timeframeId,

@@ -5,8 +5,10 @@ namespace App\Controller;
 use SplFileObject;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 
+use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 use App\DTO\Screenshot\ScreenshotInputMapperInterface;
@@ -48,8 +50,16 @@ final class ApiScreenshotController extends AbstractController
         ScreenshotOutputMapperInterface $outputMapper,
         ScreenshotServiceInterface $screenshotService): JsonResponse
     {
+        // File
+        $file = $request->files->get('file');
+        if (!$file instanceof UploadedFile) {
+            return $this->json(['error' => 'File is required'], Response::HTTP_BAD_REQUEST);
+        }
+        if (!$file->isValid()) {
+            return $this->json(['error' => 'File is invalid'], Response::HTTP_BAD_REQUEST);
+        }
+
         // Input data
-        $file = $request->files->get('file'); // UploadedFile
         $data = json_decode($request->getContent(), true);
         if (!$data) {
             return $this->json(['error' => 'Invalid JSON'], 400);

@@ -4,7 +4,7 @@ namespace App\DTO\Screenshot;
 
 use App\Entity\Screenshot;
 
-class ScreenshotOutputMapper
+class ScreenshotOutputMapper implements ScreenshotOutputMapperInterface
 {
     public function fromEntity(Screenshot $screenshot): ScreenshotOutput
     {

@@ -1,35 +1,29 @@
 <?php
 
-namespace App\Tests\Unit\Domain\Service;
+namespace App\Tests\Unit\Domain\Service\Screenshot;
 
 use App\Domain\Exception\NotFoundException\ScreenshotNotFoundException;
 use App\Domain\Service\Screenshot\FilePathAlreadyExistsException;
+use App\Domain\Service\Screenshot\ScreenshotService;
 use App\Domain\Service\Screenshot\ScreenshotStorage\ScreenshotStorageInterface;
+use App\DTO\Screenshot\ScreenshotInput;
 use App\Entity\Asset;
 use App\Entity\ChartObservation;
 use App\Entity\Position;
+use App\Entity\Screenshot;
 use App\Entity\Timeframe;
 use App\Repository\Asset\AssetRepositoryInterface;
-use App\Repository\Timeframe\TimeframeRepositoryInterface;
-use PHPUnit\Framework\TestCase;
-
-use App\DTO\Screenshot\ScreenshotInput;
-use App\Entity\Screenshot;
-
-use App\Domain\Service\Screenshot\ScreenshotService;
 use App\Repository\Screenshot\ScreenshotRepositoryInterface;
-use Doctrine\ORM\EntityManagerInterface;
-
-//use App\Domain\Service\Screenshot\SymbolAlreadyExistsException;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use App\Repository\Timeframe\TimeframeRepositoryInterface;
+use DateTimeImmutable;
 use Doctrine\DBAL\Driver\Exception as DriverException;
-use App\Domain\Exception\ValidationException\ScreenshotValidationException;
-
-use Symfony\Component\Validator\ConstraintViolation;
+use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
+use Doctrine\ORM\EntityManagerInterface;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Validator\ConstraintViolationList;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
 
-use DateTimeImmutable;
+//use App\Domain\Service\Screenshot\SymbolAlreadyExistsException;
 
 class ScreenshotServiceTest extends TestCase
 {
@@ -201,7 +195,6 @@ class ScreenshotServiceTest extends TestCase
         $asset = $this->createAsset(1, 'EURUSD', 'forex', '');
         $timeframe = $this->createTimeframe(1, 'M1', 60);
         $input = $this->createScreenshotInput(
-            'C:\Users\kelle\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files\EURUSD_H4_2025-12-17_01-58-38.png',
             '2025-12-29 00:14:00',
             1,
             1,
@@ -265,7 +258,6 @@ class ScreenshotServiceTest extends TestCase
         $asset = $this->createAsset(1, 'EURUSD', 'forex', '');
         $timeframe = $this->createTimeframe(1, 'M1', 60);
         $input = $this->createScreenshotInput(
-            'C:\Users\kelle\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files\EURUSD_H4_2025-12-17_01-58-38.png',
             '2025-12-29 00:14:00',
             1,
             1,
@@ -420,7 +412,6 @@ class ScreenshotServiceTest extends TestCase
     }
 
     private function createScreenshotInput(
-        string $filePath,
         string $createdAt,
         int $assetId,
         int $timeframeId,
@@ -432,7 +423,6 @@ class ScreenshotServiceTest extends TestCase
         string $source
     ): ScreenshotInput {
         $screenshotInput = new ScreenshotInput();
-        $screenshotInput->filePath = $filePath;
         $screenshotInput->createdAt = $createdAt;
         $screenshotInput->assetId = $assetId;
         $screenshotInput->timeframeId = $timeframeId;
