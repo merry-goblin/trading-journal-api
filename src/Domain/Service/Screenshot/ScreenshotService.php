@@ -17,9 +17,9 @@ use App\Repository\Timeframe\TimeframeRepositoryInterface;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+use Symfony\Component\Validator\ConstraintViolationList;
 
 use DateTimeImmutable;
-use SplFileObject;
 
 class ScreenshotService implements ScreenshotServiceInterface
 {
@@ -52,11 +52,7 @@ class ScreenshotService implements ScreenshotServiceInterface
     /**
      * @throws FilePathAlreadyExistsException
      */
-    public function create(
-        ScreenshotInput $input,
-        SplFileObject $file,
-        ?string $mimeType
-    ): Screenshot
+    public function create(ScreenshotInput $input): Screenshot
     {
         // Validation
         $violations = $this->validator->validate($input);
@@ -74,8 +70,15 @@ class ScreenshotService implements ScreenshotServiceInterface
             throw new TimeframeNotFoundException();
         }
 
-        $storageKey = $this->storeScreenshotFile($file, $mimeType, $asset, $timeframe); // Screenshot storage
+        // Store image
+        $binary = base64_decode($input->imageData, true);
+        if ($binary === false) {
+            throw new ScreenshotValidationException(new ConstraintViolationList(), 'Invalid base64 image');
+        }
+        $storageKey = $this->buildScreenshotFileKey($input->imageMime, $asset, $timeframe);
+        $this->screenshotStorage->store($storageKey, $binary, $input->imageMime);
 
+        // Store entity
         $screenshot = new Screenshot();
         $screenshot->setFilePath($storageKey);
         $screenshot->setCreatedAt(new DateTimeImmutable($input->createdAt));
@@ -96,9 +99,8 @@ class ScreenshotService implements ScreenshotServiceInterface
         return $screenshot;
     }
 
-    private function storeScreenshotFile(
-        SplFileObject $file,
-        ?string $mimeType,
+    private function buildScreenshotFileKey(
+        string $imageMime,
         Asset $asset,
         Timeframe $timeframe
     ): string
@@ -109,8 +111,6 @@ class ScreenshotService implements ScreenshotServiceInterface
             $timeframe->getLabel(),
             time()
         );
-
-        $this->screenshotStorage->store($storageKey, $file, $mimeType);
 
         return $storageKey;
     }

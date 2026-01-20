@@ -18,6 +18,8 @@ class ScreenshotInputMapper extends AbstractMapper implements ScreenshotInputMap
         $dto->periodStart = $this->stringOrEmpty($data['periodStart'] ?? null);
         $dto->periodEnd = $this->stringOrEmpty($data['periodEnd'] ?? null);
         $dto->source = $this->stringOrEmpty($data['source'] ?? '');
+        $dto->imageData = $this->stringOrEmpty($data['image']['data'] ?? '');
+        $dto->imageMime = $this->stringOrEmpty($data['image']['mime'] ?? '');
 
         return $dto;
     }

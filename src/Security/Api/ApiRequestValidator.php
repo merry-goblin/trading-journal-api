@@ -70,7 +70,7 @@ final class ApiRequestValidator
         ]);
 
         $expected = hash_hmac('sha256', $canonical, $this->hmacSecret);
-
+        
         if (!hash_equals($expected, $signature)) {
             throw new InvalidSignatureException('Invalid HMAC signature');
         }

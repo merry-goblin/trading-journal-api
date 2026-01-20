@@ -50,15 +50,6 @@ final class ApiScreenshotController extends AbstractController
         ScreenshotOutputMapperInterface $outputMapper,
         ScreenshotServiceInterface $screenshotService): JsonResponse
     {
-        // File
-        $file = $request->files->get('file');
-        if (!$file instanceof UploadedFile) {
-            return $this->json(['error' => 'File is required'], Response::HTTP_BAD_REQUEST);
-        }
-        if (!$file->isValid()) {
-            return $this->json(['error' => 'File is invalid'], Response::HTTP_BAD_REQUEST);
-        }
-
         // Input data
         $data = json_decode($request->getContent(), true);
         if (!$data) {
@@ -67,11 +58,7 @@ final class ApiScreenshotController extends AbstractController
         $input = $inputMapper->fromArray($data);
 
         // Entity creation
-        $screenshot = $screenshotService->create(
-            $input,
-            new SplFileObject($file->getPathname()),
-            $file->getClientMimeType()
-        );
+        $screenshot = $screenshotService->create($input);
 
         // Response
         $output = $outputMapper->fromEntity($screenshot);

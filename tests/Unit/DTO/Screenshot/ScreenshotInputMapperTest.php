@@ -11,6 +11,8 @@ use TypeError;
 
 class ScreenshotInputMapperTest extends TestCase
 {
+    private string $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII';
+
     /* fromArray method */
 
     public function testFromArrayWithStandardArray(): void
@@ -25,7 +27,9 @@ class ScreenshotInputMapperTest extends TestCase
             '',
             '2025-11-25 00:00:00',
             '2025-12-17 01:58:38',
-            'manual'
+            'manual',
+            $this->base64Image,
+            'image/png'
         );
 
         // Start test
@@ -43,6 +47,8 @@ class ScreenshotInputMapperTest extends TestCase
         $this->assertSame('2025-11-25 00:00:00', $screenshotInput->periodStart);
         $this->assertSame('2025-12-17 01:58:38', $screenshotInput->periodEnd);
         $this->assertSame('manual', $screenshotInput->source);
+        $this->assertSame($this->base64Image, $screenshotInput->imageData);
+        $this->assertSame('image/png', $screenshotInput->imageMime);
     }
 
     public function testFromArrayWithEmptyValuesForEmptiableParameters(): void
@@ -57,6 +63,8 @@ class ScreenshotInputMapperTest extends TestCase
             '',
             null,
             null,
+            '',
+            '',
             ''
         );
 
@@ -75,6 +83,8 @@ class ScreenshotInputMapperTest extends TestCase
         $this->assertSame('', $screenshotInput->periodStart);
         $this->assertSame('', $screenshotInput->periodEnd);
         $this->assertSame('', $screenshotInput->source);
+        $this->assertSame('', $screenshotInput->imageData);
+        $this->assertSame('', $screenshotInput->imageMime);
 
     }
 
@@ -98,6 +108,8 @@ class ScreenshotInputMapperTest extends TestCase
         $this->assertSame('', $screenshotInput->periodStart);
         $this->assertSame('', $screenshotInput->periodEnd);
         $this->assertSame('', $screenshotInput->source);
+        $this->assertSame('', $screenshotInput->imageData);
+        $this->assertSame('', $screenshotInput->imageMime);
     }
 
     /* private methods */
@@ -111,7 +123,9 @@ class ScreenshotInputMapperTest extends TestCase
         mixed $description,
         mixed $periodStart,
         mixed $periodEnd,
-        mixed $source
+        mixed $source,
+        mixed $imageData,
+        mixed $imageSource
     ): array {
         return [
             'createdAt' => $createdAt,
@@ -123,6 +137,10 @@ class ScreenshotInputMapperTest extends TestCase
             'periodStart' => $periodStart,
             'periodEnd' => $periodEnd,
             'source' => $source,
+            'image' => [
+                'data' => $imageData,
+                'mime' => $imageSource,
+            ],
         ];
     }
 }

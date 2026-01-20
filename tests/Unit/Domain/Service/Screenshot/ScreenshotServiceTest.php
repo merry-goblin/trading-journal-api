@@ -27,6 +27,8 @@ use Symfony\Component\Validator\Validator\ValidatorInterface;
 
 class ScreenshotServiceTest extends TestCase
 {
+    private string $base64Image = 'iVBORw0KGgoAAAANSUhEUgAAAAgAAAAIAQMAAAD+wSzIAAAABlBMVEX///+/v7+jQ3Y5AAAADklEQVQI12P4AIX8EAgALgAD/aNpbtEAAAAASUVORK5CYII';
+
     /* get method */
 
     public function testGetOneScreenshotById(): void
@@ -203,10 +205,10 @@ class ScreenshotServiceTest extends TestCase
             '',
             '2025-11-25 00:00:00',
             '2025-12-17 01:58:38',
-            'manual'
+            'manual',
+            $this->base64Image,
+            'image/png'
         );
-        $file = $this->createStub(\SplFileObject::class);
-        $mimeType = 'image/png';
 
         // Dependency injection
         $screenshotRepository = $this->createStub(ScreenshotRepositoryInterface::class);
@@ -241,7 +243,7 @@ class ScreenshotServiceTest extends TestCase
 
         // Start test
         $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
-        $screenshot = $screenshotService->create($input, $file, $mimeType);
+        $screenshot = $screenshotService->create($input);
 
         // Assertions
         $this->assertIsObject($screenshot);
@@ -266,10 +268,10 @@ class ScreenshotServiceTest extends TestCase
             '',
             '2025-11-25 00:00:00',
             '2025-12-17 01:58:38',
-            'manual'
+            'manual',
+            $this->base64Image,
+            'image/png'
         );
-        $file = $this->createStub(\SplFileObject::class);
-        $mimeType = 'image/png';
         $exception = new UniqueConstraintViolationException(
             $this->createStub(DriverException::class),
             null
@@ -309,7 +311,7 @@ class ScreenshotServiceTest extends TestCase
 
         // Start test
         $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
-        $screenshotService->create($input, $file, $mimeType);
+        $screenshotService->create($input);
     }
 
     /*public function testCreateScreenshotWithInvalidPayloadThrowsException(): void
@@ -420,7 +422,9 @@ class ScreenshotServiceTest extends TestCase
         string $description,
         string $periodStart,
         string $periodEnd,
-        string $source
+        string $source,
+        string $imageData,
+        string $imageMime
     ): ScreenshotInput {
         $screenshotInput = new ScreenshotInput();
         $screenshotInput->createdAt = $createdAt;
@@ -432,6 +436,8 @@ class ScreenshotServiceTest extends TestCase
         $screenshotInput->periodStart = $periodStart;
         $screenshotInput->periodEnd = $periodEnd;
         $screenshotInput->source = $source;
+        $screenshotInput->imageData = $imageData;
+        $screenshotInput->imageMime = $imageMime;
 
         return $screenshotInput;
     }

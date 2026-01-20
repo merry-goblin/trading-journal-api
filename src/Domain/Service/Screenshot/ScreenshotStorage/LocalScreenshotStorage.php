@@ -2,36 +2,32 @@
 
 namespace App\Domain\Service\Screenshot\ScreenshotStorage;
 
-use SplFileObject;
 use RuntimeException;
 
 class LocalScreenshotStorage implements ScreenshotStorageInterface
 {
     public function __construct(
-        private readonly string $basePath // ex: /var/data/screenshots
+        private readonly string $basePath
     ) {}
 
     public function store(
         string $key,
-        SplFileObject $file,
+        string $binaryContent,
         ?string $mimeType = null
     ): void {
-        $destinationPath = $this->basePath . '/' . $key;
-        $directory = dirname($destinationPath);
+        $path = $this->basePath . '/' . $key;
+        $dir = dirname($path);
 
-        if (!is_dir($directory) && !mkdir($directory, 0775, true) && !is_dir($directory)) {
-            throw new RuntimeException('Unable to create directory: ' . $directory);
+        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
+            throw new RuntimeException('Unable to create directory: ' . $dir);
         }
 
-        $destination = new SplFileObject($destinationPath, 'wb');
-
-        $file->rewind();
-        while (!$file->eof()) {
-            $destination->fwrite($file->fread(8192));
+        if (file_put_contents($path, $binaryContent) === false) {
+            throw new RuntimeException('Unable to write file: ' . $path);
         }
     }
 
-    public function read(string $key): SplFileObject
+    public function read(string $key): string
     {
         $path = $this->basePath . '/' . $key;
 
@@ -39,7 +35,12 @@ class LocalScreenshotStorage implements ScreenshotStorageInterface
             throw new RuntimeException('Screenshot not found: ' . $key);
         }
 
-        return new SplFileObject($path, 'rb');
+        $content = file_get_contents($path);
+        if ($content === false) {
+            throw new RuntimeException('Unable to read file: ' . $path);
+        }
+
+        return $content;
     }
 
     public function delete(string $key): void

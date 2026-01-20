@@ -35,4 +35,10 @@ class ScreenshotInput
     #[Assert\NotBlank]
     public string $source; // manual, auto, import
 
+    #[Assert\NotBlank]
+    public string $imageData;
+
+    #[Assert\NotBlank]
+    public string $imageMime;
+
 }

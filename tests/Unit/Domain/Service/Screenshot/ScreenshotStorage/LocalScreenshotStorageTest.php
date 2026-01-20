@@ -30,14 +30,13 @@ class LocalScreenshotStorageTest extends TestCase
     public function testStoreCreatesFileWithCorrectContent(): void
     {
         // Mock data
-        $sourcePath = $this->tempDirectory . '/source.txt';
-        file_put_contents($sourcePath, 'hello screenshot');
-        $file = new SplFileObject($sourcePath, 'rb');
         $key = 'EURUSD/H1/screenshot.txt';
+        $binaryContent = 'hello screenshot';
+        $mimeType = 'image/png';
         $storedPath = $this->tempDirectory . '/' . $key;
 
         // Start test
-        $this->storage->store($key, $file);
+        $this->storage->store($key, $binaryContent, $mimeType);
 
         // Assertions
         $this->assertFileExists($storedPath);
@@ -49,7 +48,7 @@ class LocalScreenshotStorageTest extends TestCase
 
     /* read method */
 
-    public function testReadReturnsSplFileObject(): void
+    public function testReadReturnsString(): void
     {
         // Mock data
         $key = 'test/read.txt';
@@ -58,11 +57,10 @@ class LocalScreenshotStorageTest extends TestCase
         file_put_contents($path, 'read content');
 
         // Start test
-        $file = $this->storage->read($key);
+        $fileContent = $this->storage->read($key);
 
         // Assertions
-        $this->assertInstanceOf(SplFileObject::class, $file);
-        $this->assertSame('read content', $file->fread(1024));
+        $this->assertSame('read content', $fileContent);
     }
 
     /* delete method */

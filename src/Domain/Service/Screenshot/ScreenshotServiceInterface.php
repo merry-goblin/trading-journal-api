@@ -13,9 +13,5 @@ interface ScreenshotServiceInterface
 
     public function get(int $id): ?Screenshot;
 
-    public function create(
-        ScreenshotInput $input,
-        SplFileObject $file,
-        ?string $mimeType
-    ): Screenshot;
+    public function create(ScreenshotInput $input): Screenshot;
 }
