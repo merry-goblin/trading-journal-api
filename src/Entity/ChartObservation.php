@@ -87,12 +87,12 @@ class ChartObservation
         return $this;
     }
 
-    public function getObservedAt(): ?\DateTime
+    public function getObservedAt(): ?\DateTimeImmutable
     {
         return $this->observedAt;
     }
 
-    public function setObservedAt(\DateTime $observedAt): static
+    public function setObservedAt(\DateTimeImmutable $observedAt): static
     {
         $this->observedAt = $observedAt;
 

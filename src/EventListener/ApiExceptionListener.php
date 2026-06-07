@@ -73,7 +73,7 @@ final class ApiExceptionListener
             ];
         }
 
-        throw $exception;// For debug purpose only: throw $exception;
+        //throw $exception;// For debug purpose only: throw $exception;
 
         // 💥 Internal error (500)
         return [

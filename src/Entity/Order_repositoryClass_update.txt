@@ -1,0 +1,16 @@
+NOTE: Mettre a jour le repositoryClass dans Order.php :
+
+Avant :
+  use App\Repository\OrderRepository;
+  #[ORM\Entity(repositoryClass: OrderRepository::class)]
+
+Apres :
+  use App\Repository\Order\OrderRepository;
+  #[ORM\Entity(repositoryClass: OrderRepository::class)]
+
+Idem pour Position.php :
+  use App\Repository\Position\PositionRepository;
+
+Puis supprimer :
+  src/Repository/OrderRepository.php
+  src/Repository/PositionRepository.php

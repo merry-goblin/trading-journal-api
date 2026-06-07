@@ -69,6 +69,8 @@ class ScreenshotService implements ScreenshotServiceInterface
         if (!$timeframe) {
             throw new TimeframeNotFoundException();
         }
+        $observation = null;
+        $position = null;
 
         // Store image
         $binary = base64_decode($input->imageData, true);
@@ -84,6 +86,8 @@ class ScreenshotService implements ScreenshotServiceInterface
         $screenshot->setCreatedAt(new DateTimeImmutable($input->createdAt));
         $screenshot->setAsset($asset);
         $screenshot->setTimeframe($timeframe);
+        $screenshot->setObservation($observation);
+        $screenshot->setPosition($position);
         $screenshot->setDescription($input->description);
         $screenshot->setPeriodStart(new DateTimeImmutable($input->periodStart));
         $screenshot->setPeriodEnd(new DateTimeImmutable($input->periodEnd));
@@ -109,7 +113,7 @@ class ScreenshotService implements ScreenshotServiceInterface
             '%s/%s/%s.png',
             $asset->getSymbol(),
             $timeframe->getLabel(),
-            time()
+            uniqid()
         );
 
         return $storageKey;

@@ -2,7 +2,7 @@
 
 namespace App\Entity;
 
-use App\Repository\OrderRepository;
+use App\Repository\Order\OrderRepository;
 use Doctrine\DBAL\Types\Types;
 use Doctrine\ORM\Mapping as ORM;
 
@@ -27,7 +27,7 @@ class Order
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\Column(length: 15)]
-    private ?string $order_type = null;
+    private ?string $orderType = null;
 
     #[ORM\Column(length: 5)]
     private ?string $direction = null;
