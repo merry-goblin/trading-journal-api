@@ -50,147 +50,39 @@ class Order
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
-    public function getId(): ?int
-    {
-        return $this->id;
-    }
+    public function getId(): ?int { return $this->id; }
+    public function setId(int $id): static { $this->id = $id; return $this; }
 
-    public function setId(int $id): static
-    {
-        $this->id = $id;
+    public function getAsset(): ?Asset { return $this->asset; }
+    public function setAsset(?Asset $asset): static { $this->asset = $asset; return $this; }
 
-        return $this;
-    }
+    public function getTimeframe(): ?Timeframe { return $this->timeframe; }
+    public function setTimeframe(?Timeframe $timeframe): static { $this->timeframe = $timeframe; return $this; }
 
-    public function getAsset(): ?Asset
-    {
-        return $this->asset;
-    }
+    public function getCreatedAt(): ?\DateTimeImmutable { return $this->createdAt; }
+    public function setCreatedAt(\DateTimeImmutable $createdAt): static { $this->createdAt = $createdAt; return $this; }
 
-    public function setAsset(?Asset $asset): static
-    {
-        $this->asset = $asset;
+    public function getOrderType(): ?string { return $this->orderType; }
+    public function setOrderType(string $orderType): static { $this->orderType = $orderType; return $this; }
 
-        return $this;
-    }
+    public function getDirection(): ?string { return $this->direction; }
+    public function setDirection(string $direction): static { $this->direction = $direction; return $this; }
 
-    public function getTimeframe(): ?Timeframe
-    {
-        return $this->timeframe;
-    }
+    public function getPrice(): ?string { return $this->price; }
+    public function setPrice(?string $price): static { $this->price = $price; return $this; }
 
-    public function setTimeframe(?Timeframe $timeframe): static
-    {
-        $this->timeframe = $timeframe;
+    public function getSize(): ?string { return $this->size; }
+    public function setSize(string $size): static { $this->size = $size; return $this; }
 
-        return $this;
-    }
+    public function getStopLoss(): ?string { return $this->stopLoss; }
+    public function setStopLoss(?string $stopLoss): static { $this->stopLoss = $stopLoss; return $this; }
 
-    public function getCreatedAt(): ?\DateTimeImmutable
-    {
-        return $this->createdAt;
-    }
+    public function getTakeProfit(): ?string { return $this->takeProfit; }
+    public function setTakeProfit(?string $takeProfit): static { $this->takeProfit = $takeProfit; return $this; }
 
-    public function setCreatedAt(\DateTimeImmutable $createdAt): static
-    {
-        $this->createdAt = $createdAt;
+    public function getStatus(): ?string { return $this->status; }
+    public function setStatus(string $status): static { $this->status = $status; return $this; }
 
-        return $this;
-    }
-
-    public function getOrderType(): ?string
-    {
-        return $this->orderType;
-    }
-
-    public function setOrderType(string $orderType): static
-    {
-        $this->orderType = $orderType;
-
-        return $this;
-    }
-
-    public function getDirection(): ?string
-    {
-        return $this->direction;
-    }
-
-    public function setDirection(string $direction): static
-    {
-        $this->direction = $direction;
-
-        return $this;
-    }
-
-    public function getPrice(): ?string
-    {
-        return $this->price;
-    }
-
-    public function setPrice(?string $price): static
-    {
-        $this->price = $price;
-
-        return $this;
-    }
-
-    public function getSize(): ?string
-    {
-        return $this->size;
-    }
-
-    public function setSize(string $size): static
-    {
-        $this->size = $size;
-
-        return $this;
-    }
-
-    public function getStopLoss(): ?string
-    {
-        return $this->stopLoss;
-    }
-
-    public function setStopLoss(?string $stopLoss): static
-    {
-        $this->stopLoss = $stopLoss;
-
-        return $this;
-    }
-
-    public function getTakeProfit(): ?string
-    {
-        return $this->takeProfit;
-    }
-
-    public function setTakeProfit(?string $takeProfit): static
-    {
-        $this->takeProfit = $takeProfit;
-
-        return $this;
-    }
-
-    public function getStatus(): ?string
-    {
-        return $this->status;
-    }
-
-    public function setStatus(string $status): static
-    {
-        $this->status = $status;
-
-        return $this;
-    }
-
-    public function getComment(): ?string
-    {
-        return $this->comment;
-    }
-
-    public function setComment(?string $comment): static
-    {
-        $this->comment = $comment;
-
-        return $this;
-    }
+    public function getComment(): ?string { return $this->comment; }
+    public function setComment(?string $comment): static { $this->comment = $comment; return $this; }
 }

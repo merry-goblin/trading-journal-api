@@ -17,7 +17,7 @@ class OrderInput
     public int $timeframeId;
 
     #[Assert\NotBlank]
-    public string $createdAt; // format Y.m.d H:i:s (depuis MT5)
+    public string $createdAt;
 
     #[Assert\NotBlank]
     #[Assert\Choice(choices: ['limit', 'stop', 'market'])]
