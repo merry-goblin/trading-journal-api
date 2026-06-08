@@ -15,7 +15,6 @@ class OrderInputMapper extends AbstractMapper implements OrderInputMapperInterfa
         $dto->orderType   = $this->stringOrEmpty($data['orderType'] ?? null);
         $dto->direction   = $this->stringOrEmpty($data['direction'] ?? null);
         $dto->price       = $this->stringOrNull($data['price'] ?? null);
-        $dto->stopPrice   = $this->stringOrNull($data['stopPrice'] ?? null);
         $dto->size        = $this->stringOrEmpty($data['size'] ?? null);
         $dto->stopLoss    = $this->stringOrNull($data['stopLoss'] ?? null);
         $dto->takeProfit  = $this->stringOrNull($data['takeProfit'] ?? null);

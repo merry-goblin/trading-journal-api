@@ -28,7 +28,6 @@ class OrderInput
     public string $direction;
 
     public ?string $price      = null;
-    public ?string $stopPrice  = null;
 
     #[Assert\NotBlank]
     public string $size;

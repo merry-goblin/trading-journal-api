@@ -35,9 +35,6 @@ class Order
     #[ORM\Column(type: Types::DECIMAL, precision: 10, scale: 5, nullable: true)]
     private ?string $price = null;
 
-    #[ORM\Column(name: 'stop_price', type: Types::DECIMAL, precision: 10, scale: 5, nullable: true)]
-    private ?string $stopPrice = null;
-
     #[ORM\Column(type: Types::DECIMAL, precision: 5, scale: 2)]
     private ?string $size = null;
 
@@ -133,18 +130,6 @@ class Order
     public function setPrice(?string $price): static
     {
         $this->price = $price;
-
-        return $this;
-    }
-
-    public function getStopPrice(): ?string
-    {
-        return $this->stopPrice;
-    }
-
-    public function setStopPrice(?string $stopPrice): static
-    {
-        $this->stopPrice = $stopPrice;
 
         return $this;
     }

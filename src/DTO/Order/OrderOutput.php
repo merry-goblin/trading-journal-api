@@ -11,7 +11,6 @@ class OrderOutput
     public string $orderType;
     public string $direction;
     public ?string $price;
-    public ?string $stopPrice;
     public string $size;
     public ?string $stopLoss;
     public ?string $takeProfit;

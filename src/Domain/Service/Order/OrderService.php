@@ -67,7 +67,6 @@ class OrderService implements OrderServiceInterface
         $order->setOrderType($input->orderType);
         $order->setDirection($input->direction);
         $order->setPrice($input->price);
-        $order->setStopPrice($input->stopPrice);
         $order->setSize($input->size);
         $order->setStopLoss($input->stopLoss);
         $order->setTakeProfit($input->takeProfit);

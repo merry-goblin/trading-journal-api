@@ -16,7 +16,6 @@ class OrderOutputMapper implements OrderOutputMapperInterface
         $dto->orderType   = $order->getOrderType();
         $dto->direction   = $order->getDirection();
         $dto->price       = $order->getPrice();
-        $dto->stopPrice   = $order->getStopPrice();
         $dto->size        = $order->getSize();
         $dto->stopLoss    = $order->getStopLoss();
         $dto->takeProfit  = $order->getTakeProfit();

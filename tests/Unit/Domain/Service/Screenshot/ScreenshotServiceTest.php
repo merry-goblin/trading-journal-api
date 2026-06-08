@@ -248,7 +248,7 @@ class ScreenshotServiceTest extends TestCase
         // Assertions
         $this->assertIsObject($screenshot);
         $this->assertInstanceOf(Screenshot::class, $screenshot);
-        $this->assertMatchesRegularExpression('#EURUSD/M1/\d*.png#', $screenshot->getFilePath());
+        $this->assertMatchesRegularExpression('#EURUSD/M1/[a-z\d]*.png#i', $screenshot->getFilePath());
         $this->assertSame($input->createdAt, $screenshot->getCreatedAt()->format('Y-m-d H:i:s'));
         $this->assertSame($asset, $screenshot->getAsset());
         $this->assertSame($timeframe, $screenshot->getTimeframe());

@@ -193,6 +193,9 @@ class ApiScreenshotControllerTest extends AbstractTestApiController
 
     public function testCreateScreenshotReturnsCreatedScreenshot(): void
     {
+        // Fake DB data
+        $asset     = AssetFactory::create($this->em, 'SP500');
+        $timeframe = TimeframeFactory::create($this->em, 'M5', 300);
         $payload = [
             'createdAt' => '2025-12-29 00:14:00',
             'assetId' => 1,
@@ -202,7 +205,11 @@ class ApiScreenshotControllerTest extends AbstractTestApiController
             'description' => '',
             'periodStart' => '2025-11-25 00:00:00',
             'periodEnd' => '2025-12-17 01:58:38',
-            'source' => 'manual'
+            'source' => 'manual',
+            'image'       => [
+                'mime' => 'image/png',
+                'data' => 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=='
+            ]
         ];
         $jsonContent = json_encode($payload);
 
