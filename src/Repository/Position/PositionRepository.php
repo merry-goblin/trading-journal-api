@@ -1,18 +1,60 @@
 <?php
-
 namespace App\Repository\Position;
-
 use App\Entity\Position;
+use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
-
-/**
- * @extends ServiceEntityRepository<Position>
- */
+/** @extends ServiceEntityRepository<Position> */
 class PositionRepository extends ServiceEntityRepository implements PositionRepositoryInterface
 {
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Position::class);
+    }
+
+    public function findClosed(): array
+    {
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.closedAt IS NOT NULL')
+            ->andWhere('p.pnl IS NOT NULL')
+            ->orderBy('p.openedAt', 'DESC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findWithFilters(array $filters = [], int $page = 1, int $limit = 20): array
+    {
+        $qb = $this->createQueryBuilder('p');
+
+        if (!empty($filters['assetId']))
+            $qb->andWhere('p.asset = :assetId')->setParameter('assetId', $filters['assetId']);
+
+        if (!empty($filters['direction']))
+            $qb->andWhere('p.direction = :dir')->setParameter('dir', $filters['direction']);
+
+        if (!empty($filters['dateFrom']))
+            $qb->andWhere('p.openedAt >= :dateFrom')
+               ->setParameter('dateFrom', new DateTimeImmutable($filters['dateFrom']));
+
+        if (!empty($filters['dateTo']))
+            $qb->andWhere('p.openedAt <= :dateTo')
+               ->setParameter('dateTo', new DateTimeImmutable($filters['dateTo']));
+
+        if (array_key_exists('planRespected', $filters) && $filters['planRespected'] !== null)
+            $qb->andWhere('p.planRespected = :pr')
+               ->setParameter('pr', (bool)$filters['planRespected']);
+
+        if (!empty($filters['tagId']))
+        {
+            $qb->innerJoin('p.tags', 't')
+               ->andWhere('t.id = :tagId')
+               ->setParameter('tagId', $filters['tagId']);
+        }
+
+        $qb->orderBy('p.openedAt', 'DESC')
+           ->setFirstResult(($page - 1) * $limit)
+           ->setMaxResults($limit);
+
+        return $qb->getQuery()->getResult();
     }
 }
