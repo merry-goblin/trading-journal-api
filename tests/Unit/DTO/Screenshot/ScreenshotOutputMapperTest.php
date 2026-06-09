@@ -4,6 +4,7 @@ namespace App\Tests\Unit\DTO\Screenshot;
 
 use App\Entity\Asset;
 use App\Entity\ChartObservation;
+use App\Entity\Order;
 use App\Entity\Position;
 use App\Entity\Screenshot;
 use App\Entity\Timeframe;
@@ -22,14 +23,18 @@ class ScreenshotOutputMapperTest extends TestCase
     {
         // Mock data
         $asset = $this->createAsset(1, 'EURUSD', 'forex', 'Euro vs US Dollar');
-        $timeframe = $this->createTimeframe(1, 'M1', 60);
+        $timeframe = $this->createTimeframe(3, 'M1', 60);
+        $chartObservation = $this->createChartObservation(
+            5, $asset, $timeframe, new DateTimeImmutable('2025-12-29 00:14:00'), 'bull', '', null, null
+        );
+
         $screenshot = $this->createScreenshot(
             1,
             'C:\Users\kelle\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files\EURUSD_H4_2025-12-17_01-58-38.png',
             new DateTimeImmutable('2025-12-29 00:14:00'),
             $asset,
             $timeframe,
-            null,
+            $chartObservation,
             null,
             '',
             new DateTimeImmutable('2025-11-25 00:00:00'),
@@ -47,9 +52,8 @@ class ScreenshotOutputMapperTest extends TestCase
         $this->assertSame('C:\Users\kelle\AppData\Roaming\MetaQuotes\Terminal\D0E8209F77C8CF37AD8BF550E51FF075\MQL5\Files\EURUSD_H4_2025-12-17_01-58-38.png', $screenshotOutput->filePath);
         $this->assertSame('2025-12-29 00:14:00', $screenshotOutput->createdAt);
         $this->assertSame(1, $screenshotOutput->assetId);
-        $this->assertSame(1, $screenshotOutput->timeframeId);
-        $this->assertSame(null, $screenshotOutput->observationId);
-        $this->assertSame(null, $screenshotOutput->positionId);
+        $this->assertSame(3, $screenshotOutput->timeframeId);
+        $this->assertSame(5, $screenshotOutput->observationId);
         $this->assertSame('', $screenshotOutput->description);
         $this->assertSame('2025-11-25 00:00:00', $screenshotOutput->periodStart);
         $this->assertSame('2025-12-17 01:58:38', $screenshotOutput->periodEnd);
@@ -60,14 +64,17 @@ class ScreenshotOutputMapperTest extends TestCase
     {
         // Mock data
         $asset = $this->createAsset(1, 'EURUSD', 'forex', 'Euro vs US Dollar');
-        $timeframe = $this->createTimeframe(1, 'M1', 60);
+        $timeframe = $this->createTimeframe(3, 'M1', 60);
+        $chartObservation = $this->createChartObservation(
+            5, $asset, $timeframe, new DateTimeImmutable('2025-12-29 00:14:00'), 'bull', '', null, null
+        );
         $screenshot = $this->createScreenshot(
             1,
             '',
             new DateTimeImmutable('2026-01-01 00:00:00'),
             $asset,
             $timeframe,
-            null,
+            $chartObservation,
             null,
             '',
             new DateTimeImmutable('2026-01-01 00:00:00'),
@@ -85,9 +92,8 @@ class ScreenshotOutputMapperTest extends TestCase
         $this->assertSame('', $screenshotOutput->filePath);
         $this->assertSame('2026-01-01 00:00:00', $screenshotOutput->createdAt);
         $this->assertSame(1, $screenshotOutput->assetId);
-        $this->assertSame(1, $screenshotOutput->timeframeId);
-        $this->assertSame(null, $screenshotOutput->observationId);
-        $this->assertSame(null, $screenshotOutput->positionId);
+        $this->assertSame(3, $screenshotOutput->timeframeId);
+        $this->assertSame(5, $screenshotOutput->observationId);
         $this->assertSame('', $screenshotOutput->description);
         $this->assertSame('2026-01-01 00:00:00', $screenshotOutput->periodStart);
         $this->assertSame('2026-01-01 00:00:00', $screenshotOutput->periodEnd);
@@ -124,6 +130,29 @@ class ScreenshotOutputMapperTest extends TestCase
         return $timeframe;
     }
 
+    private function createChartObservation(
+        int $id,
+        Asset $asset,
+        Timeframe $timeframe,
+        DateTimeImmutable $observedAt,
+        string $trend,
+        string $comment,
+        ?Order $order,
+        ?Position $position
+    ): ChartObservation {
+        $chartObservation = new ChartObservation();
+        $chartObservation->setId($id);
+        $chartObservation->setAsset($asset);
+        $chartObservation->setTimeframe($timeframe);
+        $chartObservation->setObservedAt($observedAt);
+        $chartObservation->setTrend($trend);
+        $chartObservation->setComment($comment);
+        $chartObservation->setOrder($order);
+        $chartObservation->setPosition($position);
+
+        return $chartObservation;
+    }
+
     private function createScreenshot(
         int $id,
         string $filePath,
@@ -144,7 +173,6 @@ class ScreenshotOutputMapperTest extends TestCase
         $screenshot->setAsset($asset);
         $screenshot->setTimeframe($timeframe);
         $screenshot->setObservation($observation);
-        $screenshot->setPosition($position);
         $screenshot->setDescription($description);
         $screenshot->setPeriodStart($periodStart);
         $screenshot->setPeriodEnd($periodEnd);

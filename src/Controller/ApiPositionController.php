@@ -1,7 +1,7 @@
 <?php
-
 namespace App\Controller;
 
+use App\DTO\Position\PositionCloseInputMapperInterface;
 use App\DTO\Position\PositionInputMapperInterface;
 use App\DTO\Position\PositionOutputMapperInterface;
 use App\Domain\Service\Position\PositionServiceInterface;
@@ -15,23 +15,20 @@ final class ApiPositionController extends AbstractController
 {
     #[Route('/api/positions', name: 'listPositions', methods: ['GET'])]
     public function list(
-        PositionServiceInterface    $positionService,
+        PositionServiceInterface    $service,
         PositionOutputMapperInterface $outputMapper
     ): JsonResponse {
-        $positions = $positionService->list();
-        $output    = array_map(fn(Position $p) => $outputMapper->fromEntity($p), $positions);
-        return $this->json($output);
+        $positions = $service->list();
+        return $this->json(array_map(fn(Position $p) => $outputMapper->fromEntity($p), $positions));
     }
 
     #[Route('/api/position/{id}', name: 'findPositionById', methods: ['GET'], requirements: ['id' => '\\d+'])]
     public function show(
-        PositionServiceInterface    $positionService,
+        PositionServiceInterface    $service,
         PositionOutputMapperInterface $outputMapper,
         int $id
     ): JsonResponse {
-        $position = $positionService->get($id);
-        $output   = $outputMapper->fromEntity($position);
-        return $this->json($output);
+        return $this->json($outputMapper->fromEntity($service->get($id)));
     }
 
     #[Route('/api/position', name: 'createPosition', methods: ['POST'])]
@@ -39,15 +36,27 @@ final class ApiPositionController extends AbstractController
         Request                      $request,
         PositionInputMapperInterface  $inputMapper,
         PositionOutputMapperInterface $outputMapper,
-        PositionServiceInterface     $positionService
+        PositionServiceInterface     $service
     ): JsonResponse {
         $data = json_decode($request->getContent(), true);
-        if (!$data) {
-            return $this->json(['error' => 'Invalid JSON'], 400);
-        }
+        if (!$data) return $this->json(['error' => 'Invalid JSON'], 400);
         $input    = $inputMapper->fromArray($data);
-        $position = $positionService->create($input);
-        $output   = $outputMapper->fromEntity($position);
-        return $this->json($output, 201);
+        $position = $service->create($input);
+        return $this->json($outputMapper->fromEntity($position), 201);
+    }
+
+    #[Route('/api/position/{id}/close', name: 'closePosition', methods: ['PATCH'], requirements: ['id' => '\\d+'])]
+    public function close(
+        Request                          $request,
+        PositionCloseInputMapperInterface $closeMapper,
+        PositionOutputMapperInterface     $outputMapper,
+        PositionServiceInterface         $service,
+        int $id
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+        if (!$data) return $this->json(['error' => 'Invalid JSON'], 400);
+        $input    = $closeMapper->fromArray($data);
+        $position = $service->close($id, $input);
+        return $this->json($outputMapper->fromEntity($position));
     }
 }

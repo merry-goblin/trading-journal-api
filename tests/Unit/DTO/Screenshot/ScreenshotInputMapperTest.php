@@ -21,8 +21,8 @@ class ScreenshotInputMapperTest extends TestCase
         $fromArray = $this->createArray(
             '2025-12-29 00:14:00',
             1,
-            1,
-            null,
+            3,
+            5,
             null,
             '',
             '2025-11-25 00:00:00',
@@ -40,10 +40,9 @@ class ScreenshotInputMapperTest extends TestCase
         $this->assertInstanceOf(ScreenshotInput::class, $screenshotInput);
         $this->assertSame('2025-12-29 00:14:00', $screenshotInput->createdAt);
         $this->assertSame(1, $screenshotInput->assetId);
-        $this->assertSame(1, $screenshotInput->timeframeId);
-        $this->assertSame(null, $screenshotInput->observationId);
-        $this->assertSame(null, $screenshotInput->positionId);
-        $this->assertSame('', $screenshotInput->description);
+        $this->assertSame(3, $screenshotInput->timeframeId);
+        $this->assertSame(5, $screenshotInput->observationId);
+        $this->assertSame(null, $screenshotInput->description);
         $this->assertSame('2025-11-25 00:00:00', $screenshotInput->periodStart);
         $this->assertSame('2025-12-17 01:58:38', $screenshotInput->periodEnd);
         $this->assertSame('manual', $screenshotInput->source);
@@ -77,9 +76,8 @@ class ScreenshotInputMapperTest extends TestCase
         $this->assertSame('', $screenshotInput->createdAt);
         $this->assertSame(0, $screenshotInput->assetId);
         $this->assertSame(0, $screenshotInput->timeframeId);
-        $this->assertSame(null, $screenshotInput->observationId);
-        $this->assertSame(null, $screenshotInput->positionId);
-        $this->assertSame('', $screenshotInput->description);
+        $this->assertSame(0, $screenshotInput->observationId);
+        $this->assertSame(null, $screenshotInput->description);
         $this->assertSame('', $screenshotInput->periodStart);
         $this->assertSame('', $screenshotInput->periodEnd);
         $this->assertSame('', $screenshotInput->source);
@@ -102,9 +100,8 @@ class ScreenshotInputMapperTest extends TestCase
         $this->assertSame('', $screenshotInput->createdAt);
         $this->assertSame(0, $screenshotInput->assetId);
         $this->assertSame(0, $screenshotInput->timeframeId);
-        $this->assertSame(null, $screenshotInput->observationId);
-        $this->assertSame(null, $screenshotInput->positionId);
-        $this->assertSame('', $screenshotInput->description);
+        $this->assertSame(0, $screenshotInput->observationId);
+        $this->assertSame(null, $screenshotInput->description);
         $this->assertSame('', $screenshotInput->periodStart);
         $this->assertSame('', $screenshotInput->periodEnd);
         $this->assertSame('', $screenshotInput->source);

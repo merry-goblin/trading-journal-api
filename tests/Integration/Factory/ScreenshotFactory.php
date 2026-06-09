@@ -19,7 +19,6 @@ final class ScreenshotFactory
         Asset $asset,
         Timeframe $timeframe,
         ?ChartObservation $observation,
-        ?Position $position,
         string $description,
         DateTimeImmutable $periodStart,
         DateTimeImmutable $periodEnd,
@@ -31,7 +30,6 @@ final class ScreenshotFactory
         $screenshot->setAsset($asset);
         $screenshot->setTimeframe($timeframe);
         $screenshot->setObservation($observation);
-        $screenshot->setPosition($position);
         $screenshot->setDescription($description);
         $screenshot->setPeriodStart($periodStart);
         $screenshot->setPeriodEnd($periodEnd);

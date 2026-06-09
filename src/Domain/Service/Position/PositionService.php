@@ -1,5 +1,4 @@
 <?php
-
 namespace App\Domain\Service\Position;
 
 use App\Domain\Exception\NotFoundException\AssetNotFoundException;
@@ -7,6 +6,7 @@ use App\Domain\Exception\NotFoundException\OrderNotFoundException;
 use App\Domain\Exception\NotFoundException\PositionNotFoundException;
 use App\Domain\Exception\NotFoundException\TimeframeNotFoundException;
 use App\Domain\Exception\ValidationException\PositionValidationException;
+use App\DTO\Position\PositionCloseInput;
 use App\DTO\Position\PositionInput;
 use App\Entity\Position;
 use App\Repository\Asset\AssetRepositoryInterface;
@@ -28,46 +28,31 @@ class PositionService implements PositionServiceInterface
         private ValidatorInterface           $validator
     ) {}
 
-    public function list(): array
-    {
-        return $this->repository->findAll();
-    }
+    public function list(): array { return $this->repository->findAll(); }
 
-    /**
-     * @throws PositionNotFoundException
-     */
     public function get(int $id): Position
     {
-        $position = $this->repository->find($id);
-        if (null === $position) {
-            throw new PositionNotFoundException('Position not found');
-        }
-        return $position;
+        $p = $this->repository->find($id);
+        if (!$p) throw new PositionNotFoundException('Position not found');
+        return $p;
     }
 
-    /**
-     * @throws PositionValidationException
-     * @throws AssetNotFoundException
-     * @throws TimeframeNotFoundException
-     * @throws OrderNotFoundException
-     */
     public function create(PositionInput $input): Position
     {
         $violations = $this->validator->validate($input);
-        if (count($violations) > 0) {
+        if (count($violations) > 0)
             throw new PositionValidationException($violations);
-        }
 
         $asset = $this->assetRepository->find($input->assetId);
-        if (!$asset) { throw new AssetNotFoundException(); }
+        if (!$asset) throw new AssetNotFoundException();
 
         $timeframe = $this->timeframeRepository->find($input->timeframeId);
-        if (!$timeframe) { throw new TimeframeNotFoundException(); }
+        if (!$timeframe) throw new TimeframeNotFoundException();
 
         $originOrder = null;
         if ($input->originOrderId) {
             $originOrder = $this->orderRepository->find($input->originOrderId);
-            if (!$originOrder) { throw new OrderNotFoundException('Origin order not found'); }
+            if (!$originOrder) throw new OrderNotFoundException('Origin order not found');
         }
 
         $position = new Position();
@@ -90,7 +75,27 @@ class PositionService implements PositionServiceInterface
 
         $this->em->persist($position);
         $this->em->flush();
+        return $position;
+    }
 
+    /**
+     * Cloture une position ouverte (DEAL_ENTRY_OUT).
+     * Appele par PATCH /api/position/{id}/close
+     */
+    public function close(int $id, PositionCloseInput $input): Position
+    {
+        $violations = $this->validator->validate($input);
+        if (count($violations) > 0)
+            throw new PositionValidationException($violations);
+
+        $position = $this->get($id);
+        $position->setClosedAt(new DateTimeImmutable($input->closedAt));
+        $position->setExitPrice($input->exitPrice);
+        if ($input->pnl !== null)        $position->setPnl($input->pnl);
+        if ($input->pnlPercent !== null) $position->setPnlPercent($input->pnlPercent);
+        if ($input->rr !== null)         $position->setRr($input->rr);
+
+        $this->em->flush();
         return $position;
     }
 }

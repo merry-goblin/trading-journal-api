@@ -72,6 +72,6 @@ final class ApiTimeframeController extends AbstractController
 
         // Response
         $output = $outputMapper->fromEntity($timeframe);
-        return $this->json($output);
+        return $this->json($output, 201);
     }
 }

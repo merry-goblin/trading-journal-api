@@ -178,7 +178,7 @@ class ApiTimeframeControllerTest extends AbstractTestApiController
         $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
         // Assertions
-        $data = $this->assertJsonResponse();
+        $data = $this->assertJsonResponse(201);
         $this->assertIsArray($data);
         $this->assertSame('M1', $data['label']);
     }

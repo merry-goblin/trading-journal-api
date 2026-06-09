@@ -73,6 +73,6 @@ final class ApiAssetController extends AbstractController
 
         // Response
         $output = $outputMapper->fromEntity($asset);
-        return $this->json($output);
+        return $this->json($output, 201);
     }
 }

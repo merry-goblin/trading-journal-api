@@ -9,12 +9,14 @@ use App\Domain\Service\Screenshot\ScreenshotStorage\ScreenshotStorageInterface;
 use App\DTO\Screenshot\ScreenshotInput;
 use App\Entity\Asset;
 use App\Entity\ChartObservation;
+use App\Entity\Order;
 use App\Entity\Position;
 use App\Entity\Screenshot;
 use App\Entity\Timeframe;
 use App\Repository\Asset\AssetRepositoryInterface;
 use App\Repository\Screenshot\ScreenshotRepositoryInterface;
 use App\Repository\Timeframe\TimeframeRepositoryInterface;
+use App\Repository\ChartObservation\ChartObservationRepositoryInterface;
 use DateTimeImmutable;
 use Doctrine\DBAL\Driver\Exception as DriverException;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -43,7 +45,6 @@ class ScreenshotServiceTest extends TestCase
             $expectedAsset,
             $expectedTimeframe,
             null,
-            null,
             '',
             new DateTimeImmutable('2025-11-25 00:00:00'),
             new DateTimeImmutable('2025-12-17 01:58:38'),
@@ -59,12 +60,13 @@ class ScreenshotServiceTest extends TestCase
         ;
         $assetRepository = $this->createStub(AssetRepositoryInterface::class);
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
+        $chartObservationRepository = $this->createStub(ChartObservationRepositoryInterface::class);
         $em = $this->createStub(EntityManagerInterface::class);
         $validator = $this->createStub(ValidatorInterface::class);
         $screenshotStorage = $this->createStub(ScreenshotStorageInterface::class);
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $chartObservationRepository, $em, $validator, $screenshotStorage);
         $screenshot = $screenshotService->get(1);
 
         // Assertions
@@ -88,6 +90,7 @@ class ScreenshotServiceTest extends TestCase
         ;
         $assetRepository = $this->createStub(AssetRepositoryInterface::class);
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
+        $chartObservationRepository = $this->createStub(ChartObservationRepositoryInterface::class);
         $em = $this->createStub(EntityManagerInterface::class);
         $validator = $this->createStub(ValidatorInterface::class);
         $screenshotStorage = $this->createStub(ScreenshotStorageInterface::class);
@@ -97,7 +100,7 @@ class ScreenshotServiceTest extends TestCase
         $this->expectExceptionMessage('Screenshot not found');
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $chartObservationRepository, $em, $validator, $screenshotStorage);
         $screenshotService->get(9999);
     }
 
@@ -117,7 +120,6 @@ class ScreenshotServiceTest extends TestCase
             $expectedAsset1,
             $expectedTimeframe1,
             null,
-            null,
             '',
             new DateTimeImmutable('2025-11-25 00:00:00'),
             new DateTimeImmutable('2025-12-17 01:58:38'),
@@ -129,7 +131,6 @@ class ScreenshotServiceTest extends TestCase
             new DateTimeImmutable('2025-12-29 00:18:00'),
             $expectedAsset2,
             $expectedTimeframe2,
-            null,
             null,
             '',
             new DateTimeImmutable('2025-12-18 00:00:00'),
@@ -149,12 +150,13 @@ class ScreenshotServiceTest extends TestCase
         ;
         $assetRepository = $this->createStub(AssetRepositoryInterface::class);
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
+        $chartObservationRepository = $this->createStub(ChartObservationRepositoryInterface::class);
         $em = $this->createStub(EntityManagerInterface::class);
         $validator = $this->createStub(ValidatorInterface::class);
         $screenshotStorage = $this->createStub(ScreenshotStorageInterface::class);
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $chartObservationRepository, $em, $validator, $screenshotStorage);
         $screenshotList = $screenshotService->list();
 
         // Assertions
@@ -176,12 +178,13 @@ class ScreenshotServiceTest extends TestCase
         ;
         $assetRepository = $this->createStub(AssetRepositoryInterface::class);
         $timeframeRepository = $this->createStub(TimeframeRepositoryInterface::class);
+        $chartObservationRepository = $this->createStub(ChartObservationRepositoryInterface::class);
         $em = $this->createStub(EntityManagerInterface::class);
         $validator = $this->createStub(ValidatorInterface::class);
         $screenshotStorage = $this->createStub(ScreenshotStorageInterface::class);
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $chartObservationRepository, $em, $validator, $screenshotStorage);
         $screenshotList = $screenshotService->list();
 
         // Assertions
@@ -195,13 +198,15 @@ class ScreenshotServiceTest extends TestCase
     {
         // Mock data
         $asset = $this->createAsset(1, 'EURUSD', 'forex', '');
-        $timeframe = $this->createTimeframe(1, 'M1', 60);
+        $timeframe = $this->createTimeframe(3, 'M1', 60);
+        $chartObservation = $this->createChartObservation(
+            5, $asset, $timeframe, new DateTimeImmutable('2025-12-29 00:14:00'), 'bull', '', null, null
+        );
         $input = $this->createScreenshotInput(
             '2025-12-29 00:14:00',
             1,
-            1,
-            null,
-            null,
+            3,
+            5,
             '',
             '2025-11-25 00:00:00',
             '2025-12-17 01:58:38',
@@ -221,8 +226,14 @@ class ScreenshotServiceTest extends TestCase
         $timeframeRepository = $this->createMock(TimeframeRepositoryInterface::class);
         $timeframeRepository->expects(self::once())
             ->method('find')
-            ->with(1)
+            ->with(3)
             ->willReturn($timeframe)
+        ;
+        $chartObservationRepository = $this->createMock(ChartObservationRepositoryInterface::class);
+        $chartObservationRepository->expects(self::once())
+            ->method('find')
+            ->with(5)
+            ->willReturn($chartObservation)
         ;
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())
@@ -242,7 +253,7 @@ class ScreenshotServiceTest extends TestCase
         ;
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $chartObservationRepository, $em, $validator, $screenshotStorage);
         $screenshot = $screenshotService->create($input);
 
         // Assertions
@@ -252,19 +263,22 @@ class ScreenshotServiceTest extends TestCase
         $this->assertSame($input->createdAt, $screenshot->getCreatedAt()->format('Y-m-d H:i:s'));
         $this->assertSame($asset, $screenshot->getAsset());
         $this->assertSame($timeframe, $screenshot->getTimeframe());
+        $this->assertSame($chartObservation, $screenshot->getObservation());
     }
 
     public function testCreateScreenshotWithFilePathDuplication(): void
     {
         // Mock data
         $asset = $this->createAsset(1, 'EURUSD', 'forex', '');
-        $timeframe = $this->createTimeframe(1, 'M1', 60);
+        $timeframe = $this->createTimeframe(3, 'M1', 60);
+        $chartObservation = $this->createChartObservation(
+            5, $asset, $timeframe, new DateTimeImmutable('2025-12-29 00:14:00'), 'bull', '', null, null
+        );
         $input = $this->createScreenshotInput(
             '2025-12-29 00:14:00',
             1,
-            1,
-            null,
-            null,
+            3,
+            5,
             '',
             '2025-11-25 00:00:00',
             '2025-12-17 01:58:38',
@@ -288,8 +302,14 @@ class ScreenshotServiceTest extends TestCase
         $timeframeRepository = $this->createMock(TimeframeRepositoryInterface::class);
         $timeframeRepository->expects(self::once())
             ->method('find')
-            ->with(1)
+            ->with(3)
             ->willReturn($timeframe)
+        ;
+        $chartObservationRepository = $this->createMock(ChartObservationRepositoryInterface::class);
+        $chartObservationRepository->expects(self::once())
+            ->method('find')
+            ->with(5)
+            ->willReturn($chartObservation)
         ;
         $em = $this->createMock(EntityManagerInterface::class);
         $em->expects(self::once())
@@ -310,7 +330,7 @@ class ScreenshotServiceTest extends TestCase
         $this->expectException(FilePathAlreadyExistsException::class);
 
         // Start test
-        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $em, $validator, $screenshotStorage);
+        $screenshotService = new ScreenshotService($screenshotRepository, $assetRepository, $timeframeRepository, $chartObservationRepository, $em, $validator, $screenshotStorage);
         $screenshotService->create($input);
     }
 
@@ -363,7 +383,6 @@ class ScreenshotServiceTest extends TestCase
         Asset $asset,
         Timeframe $timeframe,
         ?ChartObservation $observation,
-        ?Position $position,
         string $description,
         DateTimeImmutable $periodStart,
         DateTimeImmutable $periodEnd,
@@ -376,7 +395,6 @@ class ScreenshotServiceTest extends TestCase
         $screenshot->setAsset($asset);
         $screenshot->setTimeframe($timeframe);
         $screenshot->setObservation($observation);
-        $screenshot->setPosition($position);
         $screenshot->setDescription($description);
         $screenshot->setPeriodStart($periodStart);
         $screenshot->setPeriodEnd($periodEnd);
@@ -413,12 +431,34 @@ class ScreenshotServiceTest extends TestCase
         return $timeframe;
     }
 
+    private function createChartObservation(
+        int $id,
+        Asset $asset,
+        Timeframe $timeframe,
+        DateTimeImmutable $observedAt,
+        string $trend,
+        string $comment,
+        ?Order $order,
+        ?Position $position
+    ): ChartObservation {
+        $chartObservation = new ChartObservation();
+        $chartObservation->setId($id);
+        $chartObservation->setAsset($asset);
+        $chartObservation->setTimeframe($timeframe);
+        $chartObservation->setObservedAt($observedAt);
+        $chartObservation->setTrend($trend);
+        $chartObservation->setComment($comment);
+        $chartObservation->setOrder($order);
+        $chartObservation->setPosition($position);
+
+        return $chartObservation;
+    }
+
     private function createScreenshotInput(
         string $createdAt,
         int $assetId,
         int $timeframeId,
         ?int $observationId,
-        ?int $positionId,
         string $description,
         string $periodStart,
         string $periodEnd,
@@ -431,7 +471,6 @@ class ScreenshotServiceTest extends TestCase
         $screenshotInput->assetId = $assetId;
         $screenshotInput->timeframeId = $timeframeId;
         $screenshotInput->observationId = $observationId;
-        $screenshotInput->positionId = $positionId;
         $screenshotInput->description = $description;
         $screenshotInput->periodStart = $periodStart;
         $screenshotInput->periodEnd = $periodEnd;

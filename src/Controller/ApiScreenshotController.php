@@ -62,6 +62,6 @@ final class ApiScreenshotController extends AbstractController
 
         // Response
         $output = $outputMapper->fromEntity($screenshot);
-        return $this->json($output);
+        return $this->json($output, 201);
     }
 }

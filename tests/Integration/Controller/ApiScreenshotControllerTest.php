@@ -5,7 +5,7 @@ namespace App\Tests\Integration\Controller;
 use App\Tests\Integration\AbstractTestApiController;
 use App\Tests\Integration\ApiTestAuthTrait;
 use App\Tests\Integration\Factory\AssetFactory;
-
+use App\Tests\Integration\Factory\ChartObservationFactory;
 use App\Tests\Integration\Factory\ScreenshotFactory;
 use App\Tests\Integration\Factory\TimeframeFactory;
 use DateTimeImmutable;
@@ -37,14 +37,23 @@ class ApiScreenshotControllerTest extends AbstractTestApiController
         $asset2 = AssetFactory::create($this->em, 'EURGBP');
         $timeframe1 = TimeframeFactory::create($this->em, 'M1');
         $timeframe2 = TimeframeFactory::create($this->em, 'M5', 300);
+        $obs1 = ChartObservationFactory::create(
+            $this->em, $asset1, $timeframe1,
+            new \DateTimeImmutable('2025-12-29 00:14:00'),
+            'bull'
+        );
+        $obs2 = ChartObservationFactory::create(
+            $this->em, $asset2, $timeframe2,
+            new \DateTimeImmutable('2025-12-29 00:14:00'),
+            'bear'
+        );
         ScreenshotFactory::create(
             $this->em,
             'EURUSD/M1/123456789.png',
             new DateTimeImmutable('2025-12-29 00:14:00'),
             $asset1,
             $timeframe1,
-            null,
-            null,
+            $obs1,
             '',
             new DateTimeImmutable('2025-11-25 00:00:00'),
             new DateTimeImmutable('2025-12-17 01:58:38'),
@@ -56,8 +65,7 @@ class ApiScreenshotControllerTest extends AbstractTestApiController
             new DateTimeImmutable('2025-12-29 00:14:00'),
             $asset2,
             $timeframe2,
-            null,
-            null,
+            $obs2,
             '',
             new DateTimeImmutable('2025-11-25 00:00:00'),
             new DateTimeImmutable('2025-12-17 01:58:38'),
@@ -82,7 +90,6 @@ class ApiScreenshotControllerTest extends AbstractTestApiController
         $this->assertArrayHasKey('assetId', $data[0]);
         $this->assertArrayHasKey('timeframeId', $data[0]);
         $this->assertArrayHasKey('observationId', $data[0]);
-        $this->assertArrayHasKey('positionId', $data[0]);
         $this->assertArrayHasKey('description', $data[0]);
         $this->assertArrayHasKey('periodStart', $data[0]);
         $this->assertArrayHasKey('periodEnd', $data[0]);
@@ -128,18 +135,26 @@ class ApiScreenshotControllerTest extends AbstractTestApiController
         // Fake DB data
         $asset = AssetFactory::create($this->em, 'EURUSD');
         $timeframe = TimeframeFactory::create($this->em, 'M1');
+        $obs = ChartObservationFactory::create(
+            $this->em, $asset, $timeframe,
+            new \DateTimeImmutable('2025-12-29 00:14:00'),
+            'bull'
+        );
         $screenshot = ScreenshotFactory::create(
             $this->em,
             'EURUSD/M1/123456789.png',
             new DateTimeImmutable('2025-12-29 00:14:00'),
             $asset,
             $timeframe,
-            null,
-            null,
+            $obs,
             '',
             new DateTimeImmutable('2025-11-25 00:00:00'),
             new DateTimeImmutable('2025-12-17 01:58:38'),
             'manual'
+        );
+        $obs = ChartObservationFactory::create(
+            $this->em, $asset, $timeframe,
+            new \DateTimeImmutable('2025-12-29 00:14:00'), 'bull'
         );
 
         // Start test
@@ -156,7 +171,6 @@ class ApiScreenshotControllerTest extends AbstractTestApiController
         $this->assertArrayHasKey('assetId', $data);
         $this->assertArrayHasKey('timeframeId', $data);
         $this->assertArrayHasKey('observationId', $data);
-        $this->assertArrayHasKey('positionId', $data);
         $this->assertArrayHasKey('description', $data);
         $this->assertArrayHasKey('periodStart', $data);
         $this->assertArrayHasKey('periodEnd', $data);
@@ -194,14 +208,18 @@ class ApiScreenshotControllerTest extends AbstractTestApiController
     public function testCreateScreenshotReturnsCreatedScreenshot(): void
     {
         // Fake DB data
-        $asset     = AssetFactory::create($this->em, 'SP500');
+        $asset = AssetFactory::create($this->em, 'SP500');
         $timeframe = TimeframeFactory::create($this->em, 'M5', 300);
+        $obs = ChartObservationFactory::create(
+            $this->em, $asset, $timeframe,
+            new \DateTimeImmutable('2025-12-29 00:14:00'),
+            'bull'
+        );
         $payload = [
             'createdAt' => '2025-12-29 00:14:00',
-            'assetId' => 1,
-            'timeframeId' => 1,
-            'observationId' => null,
-            'positionId' => null,
+            'assetId'       => $asset->getId(),
+            'timeframeId'   => $timeframe->getId(),
+            'observationId' => $obs->getId(),
             'description' => '',
             'periodStart' => '2025-11-25 00:00:00',
             'periodEnd' => '2025-12-17 01:58:38',
@@ -219,9 +237,10 @@ class ApiScreenshotControllerTest extends AbstractTestApiController
         $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
         // Assertions
-        $data = $this->assertJsonResponse();
+        $data = $this->assertJsonResponse(201);
         $this->assertIsArray($data);
-        $this->assertSame(1, $data['assetId']);
+        $this->assertSame($asset->getId(), $data['assetId']);
+        $this->assertSame($obs->getId(),   $data['observationId']);
     }
 
     /*public function testCreateWithInvalidJsonReturns400(): void
@@ -244,7 +263,6 @@ class ApiScreenshotControllerTest extends AbstractTestApiController
             'assetId' => null,
             'timeframeId' => null,
             'observationId' => null,
-            'positionId' => null,
             'description' => '',
             'periodStart' => '',
             'periodEnd' => '',

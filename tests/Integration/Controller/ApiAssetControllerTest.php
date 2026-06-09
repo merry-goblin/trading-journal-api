@@ -180,7 +180,7 @@ class ApiAssetControllerTest extends AbstractTestApiController
         $this->requestUrl($method, $path, $this->getAuthHeaders($method, $path, $jsonContent), $jsonContent);
 
         // Assertions
-        $data = $this->assertJsonResponse();
+        $data = $this->assertJsonResponse(201);
         $this->assertIsArray($data);
         $this->assertSame('EURUSD', $data['symbol']);
     }

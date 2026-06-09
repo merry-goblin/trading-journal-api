@@ -1,44 +1,36 @@
 <?php
-
 namespace App\DTO\Screenshot;
-
 use Symfony\Component\Validator\Constraints as Assert;
 
 class ScreenshotInput
 {
     public int $id;
-
     public ?string $createdAt;
 
-    #[Assert\NotNull]
-    #[Assert\Positive]
+    #[Assert\NotNull] #[Assert\Positive]
     public int $assetId;
 
-    #[Assert\NotNull]
-    #[Assert\Positive]
+    #[Assert\NotNull] #[Assert\Positive]
     public int $timeframeId;
 
-    #[Assert\Positive]
-    public ?int $observationId;
+    /** Obligatoire : tout screenshot doit etre lie a une observation */
+    #[Assert\NotNull] #[Assert\Positive]
+    public int $observationId;
 
-    #[Assert\Positive]
-    public ?int $positionId;
+    public ?string $description;
 
-    public string $description;
-
-    #[Assert\NotNull]
+    #[Assert\NotBlank]
     public string $periodStart;
 
-    #[Assert\NotNull]
+    #[Assert\NotBlank]
     public string $periodEnd;
 
     #[Assert\NotBlank]
-    public string $source; // manual, auto, import
+    public string $source;
 
     #[Assert\NotBlank]
     public string $imageData;
 
     #[Assert\NotBlank]
     public string $imageMime;
-
 }
