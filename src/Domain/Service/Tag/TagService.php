@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Domain\Service\Tag;
+
 use App\Domain\Exception\NotFoundException\TagNotFoundException;
 use App\Domain\Exception\ValidationException\TagValidationException;
 use App\DTO\FrontApi\Tag\TagInput;
@@ -7,6 +9,7 @@ use App\Entity\Tag;
 use App\Repository\Tag\TagRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 class TagService implements TagServiceInterface
 {
     public function __construct(
@@ -40,5 +43,12 @@ class TagService implements TagServiceInterface
         $this->em->persist($tag);
         $this->em->flush();
         return $tag;
+    }
+
+    public function delete(int $id): void
+    {
+        $tag = $this->get($id);
+        $this->em->remove($tag);
+        $this->em->flush();
     }
 }

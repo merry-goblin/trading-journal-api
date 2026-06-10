@@ -11,7 +11,7 @@ class LocalScreenshotStorage implements ScreenshotStorageInterface
     public function store(string $storageKey, string $binaryContent, string $mimeType): void
     {
         $fullPath = $this->getFullPath($storageKey);
-        $dir      = dirname($fullPath);
+        $dir = dirname($fullPath);
 
         if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
             throw new RuntimeException('Impossible de créer le dossier : ' . $dir);
@@ -24,8 +24,37 @@ class LocalScreenshotStorage implements ScreenshotStorageInterface
 
     public function getFullPath(string $storageKey): string
     {
-        // Normalise les séparateurs (clés stockées avec /  sur Windows comme sur Linux)
-        $normalised = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $storageKey);
-        return rtrim($this->basePath, '/\\') . DIRECTORY_SEPARATOR . $normalised;
+        $normalised = str_replace(['/', '\\\\'], DIRECTORY_SEPARATOR, $storageKey);
+        return rtrim($this->basePath, '/\\\\') . DIRECTORY_SEPARATOR . $normalised;
+    }
+
+    public function read(string $storageKey): string
+    {
+        $fullPath = $this->getFullPath($storageKey);
+
+        if (!file_exists($fullPath)) {
+            throw new RuntimeException('Fichier introuvable : ' . $fullPath);
+        }
+
+        $content = file_get_contents($fullPath);
+
+        if ($content === false) {
+            throw new RuntimeException('Impossible de lire le fichier : ' . $fullPath);
+        }
+
+        return $content;
+    }
+
+    public function delete(string $storageKey): void
+    {
+        $fullPath = $this->getFullPath($storageKey);
+
+        if (!file_exists($fullPath)) {
+            return;
+        }
+
+        if (!unlink($fullPath)) {
+            throw new RuntimeException('Impossible de supprimer le fichier : ' . $fullPath);
+        }
     }
 }
