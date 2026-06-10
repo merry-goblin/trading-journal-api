@@ -18,3 +18,6 @@ php bin/phpunit --testsuite unit
 
 ### integration tests
 php bin/phpunit --testsuite integration
+
+### create a new user
+php bin/console app:create-user any-email any-password

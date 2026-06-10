@@ -20,7 +20,8 @@ final class ApiExceptionListener
         $request = $event->getRequest();
 
         // 🔒 Only for API routing
-        if (!str_starts_with($request->getPathInfo(), '/api')) {
+        $path = $request->getPathInfo();
+        if (!str_starts_with($path, '/api') && !str_starts_with($path, '/frontApi')) {
             return;
         }
 

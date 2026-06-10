@@ -6,49 +6,26 @@ use RuntimeException;
 
 class LocalScreenshotStorage implements ScreenshotStorageInterface
 {
-    public function __construct(
-        private readonly string $basePath
-    ) {}
+    public function __construct(private string $basePath) {}
 
-    public function store(
-        string $key,
-        string $binaryContent,
-        ?string $mimeType = null
-    ): void {
-        $path = $this->basePath . '/' . $key;
-        $dir = dirname($path);
+    public function store(string $storageKey, string $binaryContent, string $mimeType): void
+    {
+        $fullPath = $this->getFullPath($storageKey);
+        $dir      = dirname($fullPath);
 
-        if (!is_dir($dir) && !mkdir($dir, 0775, true) && !is_dir($dir)) {
-            throw new RuntimeException('Unable to create directory: ' . $dir);
+        if (!is_dir($dir) && !mkdir($dir, 0755, true) && !is_dir($dir)) {
+            throw new RuntimeException('Impossible de créer le dossier : ' . $dir);
         }
 
-        if (file_put_contents($path, $binaryContent) === false) {
-            throw new RuntimeException('Unable to write file: ' . $path);
+        if (file_put_contents($fullPath, $binaryContent) === false) {
+            throw new RuntimeException('Impossible d\'écrire le fichier : ' . $fullPath);
         }
     }
 
-    public function read(string $key): string
+    public function getFullPath(string $storageKey): string
     {
-        $path = $this->basePath . '/' . $key;
-
-        if (!is_file($path)) {
-            throw new RuntimeException('Screenshot not found: ' . $key);
-        }
-
-        $content = file_get_contents($path);
-        if ($content === false) {
-            throw new RuntimeException('Unable to read file: ' . $path);
-        }
-
-        return $content;
-    }
-
-    public function delete(string $key): void
-    {
-        $path = $this->basePath . '/' . $key;
-
-        if (is_file($path)) {
-            unlink($path);
-        }
+        // Normalise les séparateurs (clés stockées avec /  sur Windows comme sur Linux)
+        $normalised = str_replace(['/', '\\'], DIRECTORY_SEPARATOR, $storageKey);
+        return rtrim($this->basePath, '/\\') . DIRECTORY_SEPARATOR . $normalised;
     }
 }
