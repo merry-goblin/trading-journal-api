@@ -20,6 +20,7 @@ final class FrontObservationController extends AbstractController
     ): JsonResponse {
         $q = $request->query;
         $filters = [];
+        if ($q->has('assetId'))  $filters['assetId']  = $q->getInt('assetId');
         if ($q->has('dateFrom')) $filters['dateFrom'] = $q->get('dateFrom');
         if ($q->has('dateTo'))   $filters['dateTo']   = $q->get('dateTo');
         if ($q->has('trend'))    $filters['trend']    = $q->get('trend');

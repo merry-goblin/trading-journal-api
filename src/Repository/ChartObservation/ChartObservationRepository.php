@@ -35,6 +35,23 @@ class ChartObservationRepository extends ServiceEntityRepository implements Char
             ->getResult();
     }
 
+    public function findByPositionOrOrder(int $positionId, ?int $orderId): array
+    {
+        $qb = $this->createQueryBuilder('o')
+            ->orderBy('o.observedAt', 'ASC');
+
+        if ($orderId !== null) {
+            $qb->andWhere('o.position = :posId OR o.order = :ordId')
+               ->setParameter('posId', $positionId)
+               ->setParameter('ordId', $orderId);
+        } else {
+            $qb->andWhere('o.position = :posId')
+               ->setParameter('posId', $positionId);
+        }
+
+        return $qb->getQuery()->getResult();
+    }
+
     public function findWithFilters(array $filters = [], int $page = 1, int $limit = 20): array
     {
         $qb = $this->createQueryBuilder('o')

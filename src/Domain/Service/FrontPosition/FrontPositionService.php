@@ -1,5 +1,7 @@
 <?php
+
 namespace App\Domain\Service\FrontPosition;
+
 use App\Domain\Exception\NotFoundException\PositionNotFoundException;
 use App\Domain\Exception\ValidationException\PositionValidationException;
 use App\DTO\FrontApi\Position\FrontObservationOutput;
@@ -14,6 +16,7 @@ use App\Repository\Position\PositionRepositoryInterface;
 use App\Repository\Tag\TagRepositoryInterface;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Validator\Validator\ValidatorInterface;
+
 class FrontPositionService implements FrontPositionServiceInterface
 {
     public function __construct(
@@ -45,18 +48,16 @@ class FrontPositionService implements FrontPositionServiceInterface
         $position = $this->positionRepository->find($id);
         if (!$position) throw new PositionNotFoundException('Position not found');
 
-        if ($input->hasPlanRespected)  $position->setPlanRespected($input->planRespected);
-        if ($input->hasHigherTfBias)   $position->setHigherTfBias($input->higherTfBias);
-        if ($input->hasEntryTfBias)    $position->setEntryTfBias($input->entryTfBias);
-        if ($input->hasSetupQuality)   $position->setSetupQuality($input->setupQuality);
-        if ($input->hasEmotionScore)   $position->setEmotionScore($input->emotionScore);
-        if ($input->hasComment)        $position->setComment($input->comment);
+        if ($input->hasPlanRespected) $position->setPlanRespected($input->planRespected);
+        if ($input->hasHigherTfBias)  $position->setHigherTfBias($input->higherTfBias);
+        if ($input->hasEntryTfBias)   $position->setEntryTfBias($input->entryTfBias);
+        if ($input->hasSetupQuality)  $position->setSetupQuality($input->setupQuality);
+        if ($input->hasEmotionScore)  $position->setEmotionScore($input->emotionScore);
+        if ($input->hasComment)       $position->setComment($input->comment);
 
-        if ($input->hasTagIds && $input->tagIds !== null)
-        {
+        if ($input->hasTagIds && $input->tagIds !== null) {
             foreach ($position->getTags() as $tag) $position->removeTag($tag);
-            foreach ($input->tagIds as $tagId)
-            {
+            foreach ($input->tagIds as $tagId) {
                 $tag = $this->tagRepository->find($tagId);
                 if ($tag) $position->addTag($tag);
             }
@@ -114,7 +115,7 @@ class FrontPositionService implements FrontPositionServiceInterface
         $dto->entryTfBias = $p->getEntryTfBias();
         $dto->setupQuality = $p->getSetupQuality();
         $dto->emotionScore = $p->getEmotionScore();
-        $dto->tags = array_map(function($t) {
+        $dto->tags = array_map(function ($t) {
             $out = new FrontTagOutput();
             $out->id = $t->getId();
             $out->label = $t->getLabel();
@@ -122,14 +123,19 @@ class FrontPositionService implements FrontPositionServiceInterface
             return $out;
         }, $p->getTags()->toArray());
 
-        $observations = $this->observationRepository->findByPosition($p->getId());
-        $dto->observations = array_map(function($obs) {
+        // Observations du cycle de vie complet :
+        // celles liées à la position + celles liées à l'ordre d'origine
+        $originOrderId = $p->getOriginOrder()?->getId();
+        $observations = $this->observationRepository
+            ->findByPositionOrOrder($p->getId(), $originOrderId);
+
+        $dto->observations = array_map(function ($obs) {
             $o = new FrontObservationOutput();
             $o->id = $obs->getId();
             $o->observedAt = $obs->getObservedAt()?->format('Y-m-d H:i:s');
             $o->trend = $obs->getTrend();
             $o->comment = $obs->getComment();
-            $o->screenshots = array_map(function($s) {
+            $o->screenshots = array_map(function ($s) {
                 $sc = new FrontScreenshotOutput();
                 $sc->id = $s->getId();
                 $sc->filePath = $s->getFilePath();
