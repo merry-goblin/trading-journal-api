@@ -1,61 +1,64 @@
 <?php
+
 namespace App\Domain\Service\Stats;
+
 use App\DTO\FrontApi\Stats\StatsOutput;
 use App\DTO\FrontApi\Stats\TagStatsOutput;
 use App\Entity\Position;
 use App\Repository\Position\PositionRepositoryInterface;
+
 class StatsService implements StatsServiceInterface
 {
     public function __construct(
         private PositionRepositoryInterface $positionRepository
     ) {}
 
-    public function getGlobalStats(): StatsOutput
+    public function getGlobalStats(?int $tagId = null): StatsOutput
     {
-        $positions = $this->positionRepository->findClosed();
+        $positions = $tagId !== null
+            ? $this->positionRepository->findClosedByTag($tagId)
+            : $this->positionRepository->findClosed();
+
         $dto = new StatsOutput();
         $dto->totalTrades = count($positions);
 
         if ($dto->totalTrades === 0) return $dto;
 
         $pnls = array_map(fn(Position $p) => floatval($p->getPnl()), $positions);
-        $rrs = array_values(array_filter(
+        $rrs  = array_values(array_filter(
             array_map(fn(Position $p) => $p->getRr() !== null ? floatval($p->getRr()) : null, $positions),
             fn($v) => $v !== null
         ));
 
-        $dto->winCount = count(array_filter($pnls, fn($v) => $v > 0));
+        $dto->winCount  = count(array_filter($pnls, fn($v) => $v > 0));
         $dto->lossCount = $dto->totalTrades - $dto->winCount;
-        $dto->winrate = round($dto->winCount / $dto->totalTrades * 100, 2);
-        $dto->totalPnl = round(array_sum($pnls), 2);
-        $dto->avgPnl = round($dto->totalPnl / $dto->totalTrades, 2);
-        $dto->avgRr = count($rrs) > 0 ? round(array_sum($rrs) / count($rrs), 2) : null;
+        $dto->winrate   = round($dto->winCount / $dto->totalTrades * 100, 2);
+        $dto->totalPnl  = round(array_sum($pnls), 2);
+        $dto->avgPnl    = round($dto->totalPnl / $dto->totalTrades, 2);
+        $dto->avgRr     = count($rrs) > 0 ? round(array_sum($rrs) / count($rrs), 2) : null;
 
-        // Meilleur / pire trade
         $maxPnl = max($pnls);
         $minPnl = min($pnls);
         foreach ($positions as $p) {
             if ($dto->bestTradeId === null && floatval($p->getPnl()) == $maxPnl) {
-                $dto->bestTradeId = $p->getId();
+                $dto->bestTradeId  = $p->getId();
                 $dto->bestTradePnl = $maxPnl;
             }
             if ($dto->worstTradeId === null && floatval($p->getPnl()) == $minPnl) {
-                $dto->worstTradeId = $p->getId();
+                $dto->worstTradeId  = $p->getId();
                 $dto->worstTradePnl = $minPnl;
             }
         }
 
-        // Séries
         $win = 0; $loss = 0; $maxW = 0; $maxL = 0;
-        foreach (array_reverse($pnls) as $pnl) {
+        foreach ($pnls as $pnl) {
             if ($pnl > 0) { $win++; $loss = 0; $maxW = max($maxW, $win); }
-            else           { $loss++; $win = 0; $maxL = max($maxL, $loss); }
+            else          { $loss++; $win = 0;  $maxL = max($maxL, $loss); }
         }
-        $dto->maxWinStreak = $maxW;
+        $dto->maxWinStreak  = $maxW;
         $dto->maxLossStreak = $maxL;
 
-        // Score discipline
-        $withData = array_filter($positions, fn(Position $p) => $p->isPlanRespected() !== null);
+        $withData  = array_filter($positions, fn(Position $p) => $p->isPlanRespected() !== null);
         if (count($withData) > 0) {
             $respected = array_filter($withData, fn(Position $p) => $p->isPlanRespected() === true);
             $dto->disciplineScore = round(count($respected) / count($withData) * 100, 1);
@@ -67,21 +70,21 @@ class StatsService implements StatsServiceInterface
     public function getStatsByTag(): array
     {
         $positions = $this->positionRepository->findClosed();
-        $tagData = [];
+        $tagData   = [];
 
         foreach ($positions as $position) {
             foreach ($position->getTags() as $tag) {
                 $key = $tag->getId();
                 if (!isset($tagData[$key])) {
                     $tagData[$key] = [
-                        'id' => $tag->getId(),
-                        'label' => $tag->getLabel(),
-                        'type' => $tag->getType(),
-                        'count' => 0,
+                        'id'       => $tag->getId(),
+                        'label'    => $tag->getLabel(),
+                        'type'     => $tag->getType(),
+                        'count'    => 0,
                         'winCount' => 0,
                         'totalPnl' => 0.0,
-                        'totalRr' => 0.0,
-                        'rrCount' => 0,
+                        'totalRr'  => 0.0,
+                        'rrCount'  => 0,
                     ];
                 }
                 $tagData[$key]['count']++;
@@ -95,17 +98,38 @@ class StatsService implements StatsServiceInterface
             }
         }
 
-        return array_values(array_map(function(array $d) {
+        return array_values(array_map(function (array $d) {
             $dto = new TagStatsOutput();
-            $dto->tagId = $d['id'];
+            $dto->tagId    = $d['id'];
             $dto->tagLabel = $d['label'];
-            $dto->tagType = $d['type'];
-            $dto->count = $d['count'];
+            $dto->tagType  = $d['type'];
+            $dto->count    = $d['count'];
             $dto->winCount = $d['winCount'];
-            $dto->winrate = $d['count'] > 0 ? round($d['winCount'] / $d['count'] * 100, 2) : 0.0;
+            $dto->winrate  = $d['count'] > 0 ? round($d['winCount'] / $d['count'] * 100, 2) : 0.0;
             $dto->totalPnl = round($d['totalPnl'], 2);
-            $dto->avgRr = $d['rrCount'] > 0 ? round($d['totalRr'] / $d['rrCount'], 2) : null;
+            $dto->avgRr    = $d['rrCount'] > 0 ? round($d['totalRr'] / $d['rrCount'], 2) : null;
             return $dto;
         }, $tagData));
+    }
+
+    public function getEquityCurve(?int $tagId = null): array
+    {
+        $positions = $tagId !== null
+            ? $this->positionRepository->findClosedByTag($tagId)
+            : $this->positionRepository->findClosed();
+
+        // findClosed() et findClosedByTag() trient par closedAt ASC
+        $cumulative = 0.0;
+        return array_map(function (Position $p) use (&$cumulative) {
+            $pnl = floatval($p->getPnl() ?? 0);
+            $cumulative += $pnl;
+            return [
+                'closedAt'   => $p->getClosedAt()?->format('Y-m-d H:i:s'),
+                'date'       => $p->getClosedAt()?->format('d/m'),
+                'pnl'        => round($pnl, 2),
+                'cumulative' => round($cumulative, 2),
+                'symbol'     => $p->getAsset()?->getSymbol(),
+            ];
+        }, $positions);
     }
 }

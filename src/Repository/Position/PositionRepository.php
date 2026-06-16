@@ -1,9 +1,12 @@
 <?php
+
 namespace App\Repository\Position;
+
 use App\Entity\Position;
 use DateTimeImmutable;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
+
 /** @extends ServiceEntityRepository<Position> */
 class PositionRepository extends ServiceEntityRepository implements PositionRepositoryInterface
 {
@@ -17,7 +20,20 @@ class PositionRepository extends ServiceEntityRepository implements PositionRepo
         return $this->createQueryBuilder('p')
             ->andWhere('p.closedAt IS NOT NULL')
             ->andWhere('p.pnl IS NOT NULL')
-            ->orderBy('p.openedAt', 'DESC')
+            ->orderBy('p.closedAt', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
+
+    public function findClosedByTag(int $tagId): array
+    {
+        return $this->createQueryBuilder('p')
+            ->innerJoin('p.tags', 't')
+            ->andWhere('t.id = :tagId')
+            ->andWhere('p.closedAt IS NOT NULL')
+            ->andWhere('p.pnl IS NOT NULL')
+            ->setParameter('tagId', $tagId)
+            ->orderBy('p.closedAt', 'ASC')
             ->getQuery()
             ->getResult();
     }
@@ -44,8 +60,7 @@ class PositionRepository extends ServiceEntityRepository implements PositionRepo
             $qb->andWhere('p.planRespected = :pr')
                ->setParameter('pr', (bool)$filters['planRespected']);
 
-        if (!empty($filters['tagId']))
-        {
+        if (!empty($filters['tagId'])) {
             $qb->innerJoin('p.tags', 't')
                ->andWhere('t.id = :tagId')
                ->setParameter('tagId', $filters['tagId']);
