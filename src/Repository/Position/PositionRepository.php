@@ -15,6 +15,25 @@ class PositionRepository extends ServiceEntityRepository implements PositionRepo
         parent::__construct($registry, Position::class);
     }
 
+    public function existsByKey(string $symbol, string $direction, string $openedAt, string $entryPrice): bool
+    {
+        $count = (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->join('p.asset', 'a')
+            ->andWhere('a.symbol = :symbol')
+            ->andWhere('p.direction = :direction')
+            ->andWhere('p.openedAt = :openedAt')
+            ->andWhere('p.entryPrice = :entryPrice')
+            ->setParameter('symbol',     $symbol)
+            ->setParameter('direction',  $direction)
+            ->setParameter('openedAt',   new DateTimeImmutable($openedAt))
+            ->setParameter('entryPrice', $entryPrice)
+            ->getQuery()
+            ->getSingleScalarResult();
+
+        return $count > 0;
+    }
+
     public function findClosed(): array
     {
         return $this->createQueryBuilder('p')

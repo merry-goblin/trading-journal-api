@@ -6,6 +6,7 @@ use App\DTO\FrontApi\Import\ImportPositionItem;
 use App\Entity\Asset;
 use App\Entity\Position;
 use App\Repository\Asset\AssetRepositoryInterface;
+use App\Repository\Position\PositionRepositoryInterface;
 use App\Repository\Timeframe\TimeframeRepositoryInterface;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -15,6 +16,7 @@ class ImportService implements ImportServiceInterface
     public function __construct(
         private AssetRepositoryInterface     $assetRepository,
         private TimeframeRepositoryInterface $timeframeRepository,
+        private PositionRepositoryInterface  $positionRepository,
         private EntityManagerInterface       $em
     ) {}
 
@@ -22,14 +24,26 @@ class ImportService implements ImportServiceInterface
     {
         $timeframe = $this->timeframeRepository->find($timeframeId);
         if (!$timeframe) {
-            return ['created' => 0, 'errors' => ['Timeframe introuvable.']];
+            return ['created' => 0, 'skipped' => 0, 'errors' => ['Timeframe introuvable.']];
         }
 
         $created = 0;
+        $skipped = 0;
         $errors  = [];
 
         foreach ($items as $index => $item) {
             try {
+                // Cle de deduplication : symbol + direction + openedAt + entryPrice
+                if ($this->positionRepository->existsByKey(
+                    $item->symbol,
+                    $item->direction,
+                    $item->openedAt,
+                    $item->entryPrice
+                )) {
+                    $skipped++;
+                    continue;
+                }
+
                 $asset = $this->resolveAsset($item->symbol);
 
                 $position = new Position();
@@ -53,7 +67,7 @@ class ImportService implements ImportServiceInterface
         }
 
         $this->em->flush();
-        return ['created' => $created, 'errors' => $errors];
+        return ['created' => $created, 'skipped' => $skipped, 'errors' => $errors];
     }
 
     private function resolveAsset(string $symbol): Asset
