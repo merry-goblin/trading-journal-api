@@ -1,5 +1,7 @@
 <?php
+
 namespace App\DTO\FrontApi\Position;
+
 class FrontPositionDetailOutput
 {
     public int $id;
@@ -21,12 +23,12 @@ class FrontPositionDetailOutput
     public ?string $pnlPercent;
     public ?string $rr;
     public ?string $comment;
-    // Champs d'analyse generique
     public ?bool $planRespected;
     public ?string $higherTfBias;
     public ?string $entryTfBias;
     public ?int $setupQuality;
     public ?int $emotionScore;
+    public bool $isBacktest = false;
     /** @var FrontTagOutput[] */
     public array $tags = [];
     /** @var FrontObservationOutput[] */

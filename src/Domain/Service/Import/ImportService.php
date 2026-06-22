@@ -23,27 +23,15 @@ class ImportService implements ImportServiceInterface
     public function importPositions(array $items, int $timeframeId): array
     {
         $timeframe = $this->timeframeRepository->find($timeframeId);
-        if (!$timeframe) {
-            return ['created' => 0, 'skipped' => 0, 'errors' => ['Timeframe introuvable.']];
-        }
+        if (!$timeframe) return ['created' => 0, 'skipped' => 0, 'errors' => ['Timeframe introuvable.']];
 
-        $created = 0;
-        $skipped = 0;
-        $errors  = [];
+        $created = 0; $skipped = 0; $errors = [];
 
         foreach ($items as $index => $item) {
             try {
-                // Cle de deduplication : symbol + direction + openedAt + entryPrice
-                if ($this->positionRepository->existsByKey(
-                    $item->symbol,
-                    $item->direction,
-                    $item->openedAt,
-                    $item->entryPrice
-                )) {
-                    $skipped++;
-                    continue;
+                if ($this->positionRepository->existsByKey($item->symbol, $item->direction, $item->openedAt, $item->entryPrice)) {
+                    $skipped++; continue;
                 }
-
                 $asset = $this->resolveAsset($item->symbol);
 
                 $position = new Position();
@@ -58,6 +46,7 @@ class ImportService implements ImportServiceInterface
                 $position->setPnl($item->pnl);
                 if ($item->stopLoss)   $position->setStopLoss($item->stopLoss);
                 if ($item->takeProfit) $position->setTakeProfit($item->takeProfit);
+                $position->setIsBacktest($item->isBacktest);
 
                 $this->em->persist($position);
                 $created++;
@@ -65,7 +54,6 @@ class ImportService implements ImportServiceInterface
                 $errors[] = sprintf('Ligne %d (%s) : %s', $index + 1, $item->symbol, $e->getMessage());
             }
         }
-
         $this->em->flush();
         return ['created' => $created, 'skipped' => $skipped, 'errors' => $errors];
     }
@@ -74,11 +62,8 @@ class ImportService implements ImportServiceInterface
     {
         $asset = $this->assetRepository->findOneBy(['symbol' => $symbol]);
         if ($asset) return $asset;
-
         $asset = new Asset();
-        $asset->setSymbol($symbol);
-        $asset->setType('cfd');
-        $asset->setDescription('');
+        $asset->setSymbol($symbol); $asset->setType('cfd'); $asset->setDescription('');
         $this->em->persist($asset);
         return $asset;
     }

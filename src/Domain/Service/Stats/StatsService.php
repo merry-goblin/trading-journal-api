@@ -13,15 +13,14 @@ class StatsService implements StatsServiceInterface
         private PositionRepositoryInterface $positionRepository
     ) {}
 
-    public function getGlobalStats(?int $tagId = null): StatsOutput
+    public function getGlobalStats(?int $tagId = null, ?bool $isBacktest = false): StatsOutput
     {
         $positions = $tagId !== null
-            ? $this->positionRepository->findClosedByTag($tagId)
-            : $this->positionRepository->findClosed();
+            ? $this->positionRepository->findClosedByTag($tagId, $isBacktest)
+            : $this->positionRepository->findClosed($isBacktest);
 
         $dto = new StatsOutput();
         $dto->totalTrades = count($positions);
-
         if ($dto->totalTrades === 0) return $dto;
 
         $pnls = array_map(fn(Position $p) => floatval($p->getPnl()), $positions);
@@ -37,16 +36,13 @@ class StatsService implements StatsServiceInterface
         $dto->avgPnl    = round($dto->totalPnl / $dto->totalTrades, 2);
         $dto->avgRr     = count($rrs) > 0 ? round(array_sum($rrs) / count($rrs), 2) : null;
 
-        $maxPnl = max($pnls);
-        $minPnl = min($pnls);
+        $maxPnl = max($pnls); $minPnl = min($pnls);
         foreach ($positions as $p) {
             if ($dto->bestTradeId === null && floatval($p->getPnl()) == $maxPnl) {
-                $dto->bestTradeId  = $p->getId();
-                $dto->bestTradePnl = $maxPnl;
+                $dto->bestTradeId = $p->getId(); $dto->bestTradePnl = $maxPnl;
             }
             if ($dto->worstTradeId === null && floatval($p->getPnl()) == $minPnl) {
-                $dto->worstTradeId  = $p->getId();
-                $dto->worstTradePnl = $minPnl;
+                $dto->worstTradeId = $p->getId(); $dto->worstTradePnl = $minPnl;
             }
         }
 
@@ -55,70 +51,49 @@ class StatsService implements StatsServiceInterface
             if ($pnl > 0) { $win++; $loss = 0; $maxW = max($maxW, $win); }
             else          { $loss++; $win = 0;  $maxL = max($maxL, $loss); }
         }
-        $dto->maxWinStreak  = $maxW;
-        $dto->maxLossStreak = $maxL;
+        $dto->maxWinStreak = $maxW; $dto->maxLossStreak = $maxL;
 
-        $withData  = array_filter($positions, fn(Position $p) => $p->isPlanRespected() !== null);
+        $withData = array_filter($positions, fn(Position $p) => $p->isPlanRespected() !== null);
         if (count($withData) > 0) {
             $respected = array_filter($withData, fn(Position $p) => $p->isPlanRespected() === true);
             $dto->disciplineScore = round(count($respected) / count($withData) * 100, 1);
         }
-
         return $dto;
     }
 
     public function getStatsByTag(): array
     {
-        $positions = $this->positionRepository->findClosed();
+        $positions = $this->positionRepository->findClosed(false);
         $tagData   = [];
-
         foreach ($positions as $position) {
             foreach ($position->getTags() as $tag) {
                 $key = $tag->getId();
-                if (!isset($tagData[$key])) {
-                    $tagData[$key] = [
-                        'id'       => $tag->getId(),
-                        'label'    => $tag->getLabel(),
-                        'type'     => $tag->getType(),
-                        'count'    => 0,
-                        'winCount' => 0,
-                        'totalPnl' => 0.0,
-                        'totalRr'  => 0.0,
-                        'rrCount'  => 0,
-                    ];
-                }
+                if (!isset($tagData[$key]))
+                    $tagData[$key] = ['id'=>$tag->getId(),'label'=>$tag->getLabel(),'type'=>$tag->getType(),'count'=>0,'winCount'=>0,'totalPnl'=>0.0,'totalRr'=>0.0,'rrCount'=>0];
                 $tagData[$key]['count']++;
                 $pnl = floatval($position->getPnl() ?? 0);
                 $tagData[$key]['totalPnl'] += $pnl;
                 if ($pnl > 0) $tagData[$key]['winCount']++;
-                if ($position->getRr() !== null) {
-                    $tagData[$key]['totalRr'] += floatval($position->getRr());
-                    $tagData[$key]['rrCount']++;
-                }
+                if ($position->getRr() !== null) { $tagData[$key]['totalRr'] += floatval($position->getRr()); $tagData[$key]['rrCount']++; }
             }
         }
-
         return array_values(array_map(function (array $d) {
             $dto = new TagStatsOutput();
-            $dto->tagId    = $d['id'];
-            $dto->tagLabel = $d['label'];
-            $dto->tagType  = $d['type'];
-            $dto->count    = $d['count'];
-            $dto->winCount = $d['winCount'];
-            $dto->winrate  = $d['count'] > 0 ? round($d['winCount'] / $d['count'] * 100, 2) : 0.0;
-            $dto->totalPnl = round($d['totalPnl'], 2);
-            $dto->avgRr    = $d['rrCount'] > 0 ? round($d['totalRr'] / $d['rrCount'], 2) : null;
+            $dto->tagId=$d['id']; $dto->tagLabel=$d['label']; $dto->tagType=$d['type'];
+            $dto->count=$d['count']; $dto->winCount=$d['winCount'];
+            $dto->winrate=$d['count']>0?round($d['winCount']/$d['count']*100,2):0.0;
+            $dto->totalPnl=round($d['totalPnl'],2);
+            $dto->avgRr=$d['rrCount']>0?round($d['totalRr']/$d['rrCount'],2):null;
             return $dto;
         }, $tagData));
     }
 
-    public function getEquityCurve(?int $tagId = null): array
+    public function getEquityCurve(?int $tagId = null, ?bool $isBacktest = false): array
     {
         $positions = $tagId !== null
-            ? $this->positionRepository->findClosedByTag($tagId)
-            : $this->positionRepository->findClosed();
+            ? $this->positionRepository->findClosedByTag($tagId, $isBacktest)
+            : $this->positionRepository->findClosed($isBacktest);
 
-        // findClosed() et findClosedByTag() trient par closedAt ASC
         $cumulative = 0.0;
         return array_map(function (Position $p) use (&$cumulative) {
             $pnl = floatval($p->getPnl() ?? 0);

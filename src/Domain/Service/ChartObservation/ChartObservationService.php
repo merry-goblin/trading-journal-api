@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Domain\Service\ChartObservation;
 
 use App\Domain\Exception\NotFoundException\AssetNotFoundException;
@@ -45,8 +46,7 @@ class ChartObservationService implements ChartObservationServiceInterface
     public function create(ChartObservationInput $input): ChartObservation
     {
         $violations = $this->validator->validate($input);
-        if (count($violations) > 0)
-            throw new ChartObservationValidationException($violations);
+        if (count($violations) > 0) throw new ChartObservationValidationException($violations);
 
         $asset = $this->assetRepository->find($input->assetId);
         if (!$asset) throw new AssetNotFoundException();
@@ -77,7 +77,6 @@ class ChartObservationService implements ChartObservationServiceInterface
 
         $this->em->persist($observation);
 
-        // Screenshot optionnel inline
         if ($input->imageData !== null && $input->periodStart !== null && $input->periodEnd !== null) {
             $binary = base64_decode($input->imageData, true);
             if ($binary !== false) {
@@ -100,5 +99,44 @@ class ChartObservationService implements ChartObservationServiceInterface
 
         $this->em->flush();
         return $observation;
+    }
+
+    public function update(int $id, array $data): ChartObservation
+    {
+        $obs = $this->get($id);
+
+        if (array_key_exists('trend', $data)) {
+            $trend = $data['trend'];
+            if ($trend !== null && !in_array($trend, ['bull', 'bear', 'neutral'], true))
+                throw new ChartObservationValidationException(
+                    new \Symfony\Component\Validator\ConstraintViolationList(),
+                    'trend doit etre bull, bear ou neutral'
+                );
+            $obs->setTrend($trend);
+        }
+
+        if (array_key_exists('comment', $data))
+            $obs->setComment($data['comment'] !== '' ? $data['comment'] : null);
+
+        $this->em->flush();
+        return $obs;
+    }
+
+    public function delete(int $id): void
+    {
+        $obs = $this->get($id);
+
+        // Supprimer les fichiers physiques avant le remove Doctrine
+        foreach ($obs->getScreenshots() as $screenshot) {
+            try {
+                $this->screenshotStorage->delete($screenshot->getFilePath());
+            } catch (\Throwable) {
+                // Fichier deja absent ou inaccessible — on continue
+            }
+        }
+
+        // cascade: ['remove'] sur OneToMany supprime les Screenshots en base
+        $this->em->remove($obs);
+        $this->em->flush();
     }
 }

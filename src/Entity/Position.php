@@ -74,6 +74,9 @@ class Position
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
+    #[ORM\Column(name: 'is_backtest', options: ['default' => false])]
+    private bool $isBacktest = false;
+
     // ── Champs d'analyse generique (renseignes depuis Vue.js) ─────
 
     #[ORM\Column(name: 'plan_respected', type: Types::BOOLEAN, nullable: true)]
@@ -171,6 +174,9 @@ class Position
 
     public function getEmotionScore(): ?int { return $this->emotionScore; }
     public function setEmotionScore(?int $emotionScore): static { $this->emotionScore = $emotionScore; return $this; }
+
+    public function isBacktest(): bool { return $this->isBacktest; }
+    public function setIsBacktest(bool $v): static { $this->isBacktest = $v; return $this; }
 
     /** @return Collection<int, Tag> */
     public function getTags(): Collection { return $this->tags; }

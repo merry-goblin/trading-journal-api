@@ -50,6 +50,9 @@ class Order
     #[ORM\Column(type: Types::TEXT, nullable: true)]
     private ?string $comment = null;
 
+    #[ORM\Column(name: 'is_backtest', options: ['default' => false])]
+    private bool $isBacktest = false;
+
     public function getId(): ?int { return $this->id; }
     public function setId(int $id): static { $this->id = $id; return $this; }
 
@@ -85,4 +88,7 @@ class Order
 
     public function getComment(): ?string { return $this->comment; }
     public function setComment(?string $comment): static { $this->comment = $comment; return $this; }
+
+    public function isBacktest(): bool { return $this->isBacktest; }
+    public function setIsBacktest(bool $v): static { $this->isBacktest = $v; return $this; }
 }

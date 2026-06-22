@@ -15,6 +15,33 @@ class PositionRepository extends ServiceEntityRepository implements PositionRepo
         parent::__construct($registry, Position::class);
     }
 
+    public function findClosed(?bool $isBacktest = false): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->andWhere('p.closedAt IS NOT NULL')
+            ->andWhere('p.pnl IS NOT NULL');
+
+        if ($isBacktest !== null)
+            $qb->andWhere('p.isBacktest = :isBt')->setParameter('isBt', $isBacktest);
+
+        return $qb->orderBy('p.closedAt', 'ASC')->getQuery()->getResult();
+    }
+
+    public function findClosedByTag(int $tagId, ?bool $isBacktest = false): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->innerJoin('p.tags', 't')
+            ->andWhere('t.id = :tagId')
+            ->andWhere('p.closedAt IS NOT NULL')
+            ->andWhere('p.pnl IS NOT NULL')
+            ->setParameter('tagId', $tagId);
+
+        if ($isBacktest !== null)
+            $qb->andWhere('p.isBacktest = :isBt')->setParameter('isBt', $isBacktest);
+
+        return $qb->orderBy('p.closedAt', 'ASC')->getQuery()->getResult();
+    }
+
     public function existsByKey(string $symbol, string $direction, string $openedAt, string $entryPrice): bool
     {
         $count = (int) $this->createQueryBuilder('p')
@@ -30,31 +57,7 @@ class PositionRepository extends ServiceEntityRepository implements PositionRepo
             ->setParameter('entryPrice', $entryPrice)
             ->getQuery()
             ->getSingleScalarResult();
-
         return $count > 0;
-    }
-
-    public function findClosed(): array
-    {
-        return $this->createQueryBuilder('p')
-            ->andWhere('p.closedAt IS NOT NULL')
-            ->andWhere('p.pnl IS NOT NULL')
-            ->orderBy('p.closedAt', 'ASC')
-            ->getQuery()
-            ->getResult();
-    }
-
-    public function findClosedByTag(int $tagId): array
-    {
-        return $this->createQueryBuilder('p')
-            ->innerJoin('p.tags', 't')
-            ->andWhere('t.id = :tagId')
-            ->andWhere('p.closedAt IS NOT NULL')
-            ->andWhere('p.pnl IS NOT NULL')
-            ->setParameter('tagId', $tagId)
-            ->orderBy('p.closedAt', 'ASC')
-            ->getQuery()
-            ->getResult();
     }
 
     public function findWithFilters(array $filters = [], int $page = 1, int $limit = 20): array
@@ -79,11 +82,15 @@ class PositionRepository extends ServiceEntityRepository implements PositionRepo
             $qb->andWhere('p.planRespected = :pr')
                ->setParameter('pr', (bool)$filters['planRespected']);
 
-        if (!empty($filters['tagId'])) {
+        if (!empty($filters['tagId']))
             $qb->innerJoin('p.tags', 't')
                ->andWhere('t.id = :tagId')
                ->setParameter('tagId', $filters['tagId']);
-        }
+
+        // isBacktest : null = tous, false = live, true = backtest
+        if (array_key_exists('isBacktest', $filters) && $filters['isBacktest'] !== null)
+            $qb->andWhere('p.isBacktest = :isBt')
+               ->setParameter('isBt', (bool)$filters['isBacktest']);
 
         $qb->orderBy('p.openedAt', 'DESC')
            ->setFirstResult(($page - 1) * $limit)

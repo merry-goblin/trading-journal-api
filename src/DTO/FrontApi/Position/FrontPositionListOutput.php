@@ -1,5 +1,7 @@
 <?php
+
 namespace App\DTO\FrontApi\Position;
+
 class FrontPositionListOutput
 {
     public int $id;
@@ -14,6 +16,7 @@ class FrontPositionListOutput
     public ?string $rr;
     public ?bool $planRespected;
     public ?int $setupQuality;
+    public bool $isBacktest = false;
     /** @var string[] */
     public array $tagLabels = [];
 }

@@ -14,4 +14,5 @@ class ImportPositionItem
     public ?string $takeProfit = null;
     public string $volume;
     public string $pnl;
+    public bool $isBacktest = true; // import = backtest par defaut
 }

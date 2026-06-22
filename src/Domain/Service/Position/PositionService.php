@@ -1,4 +1,5 @@
 <?php
+
 namespace App\Domain\Service\Position;
 
 use App\Domain\Exception\NotFoundException\AssetNotFoundException;
@@ -40,8 +41,7 @@ class PositionService implements PositionServiceInterface
     public function create(PositionInput $input): Position
     {
         $violations = $this->validator->validate($input);
-        if (count($violations) > 0)
-            throw new PositionValidationException($violations);
+        if (count($violations) > 0) throw new PositionValidationException($violations);
 
         $asset = $this->assetRepository->find($input->assetId);
         if (!$asset) throw new AssetNotFoundException();
@@ -72,21 +72,17 @@ class PositionService implements PositionServiceInterface
         $position->setPnlPercent($input->pnlPercent);
         $position->setRr($input->rr);
         $position->setComment($input->comment);
+        $position->setIsBacktest($input->isBacktest);
 
         $this->em->persist($position);
         $this->em->flush();
         return $position;
     }
 
-    /**
-     * Cloture une position ouverte (DEAL_ENTRY_OUT).
-     * Appele par PATCH /api/position/{id}/close
-     */
     public function close(int $id, PositionCloseInput $input): Position
     {
         $violations = $this->validator->validate($input);
-        if (count($violations) > 0)
-            throw new PositionValidationException($violations);
+        if (count($violations) > 0) throw new PositionValidationException($violations);
 
         $position = $this->get($id);
         $position->setClosedAt(new DateTimeImmutable($input->closedAt));
@@ -97,5 +93,12 @@ class PositionService implements PositionServiceInterface
 
         $this->em->flush();
         return $position;
+    }
+
+    public function delete(int $id): void
+    {
+        $position = $this->get($id);
+        $this->em->remove($position);
+        $this->em->flush();
     }
 }

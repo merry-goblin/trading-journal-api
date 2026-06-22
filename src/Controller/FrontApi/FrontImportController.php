@@ -12,36 +12,31 @@ use Symfony\Component\Routing\Attribute\Route;
 final class FrontImportController extends AbstractController
 {
     #[Route('/frontApi/import/positions', name: 'front_import_positions', methods: ['POST'])]
-    public function positions(
-        Request $request,
-        ImportServiceInterface $service
-    ): JsonResponse {
+    public function positions(Request $request, ImportServiceInterface $service): JsonResponse
+    {
         $data = json_decode($request->getContent(), true);
-
         if (!isset($data['timeframeId'], $data['positions']) || !is_array($data['positions']))
             return $this->json(['error' => 'timeframeId et positions[] requis'], 400);
 
+        $isBacktest = isset($data['isBacktest']) ? (bool)$data['isBacktest'] : true;
         $items = [];
         foreach ($data['positions'] as $row) {
             $item = new ImportPositionItem();
-            $item->symbol      = $row['symbol']      ?? '';
-            $item->direction   = $row['direction']   ?? 'long';
-            $item->openedAt    = $row['openedAt']    ?? '';
-            $item->closedAt    = $row['closedAt']    ?? '';
-            $item->entryPrice  = $row['entryPrice']  ?? '0';
-            $item->exitPrice   = $row['exitPrice']   ?? '0';
-            $item->stopLoss    = $row['stopLoss']    ?? null;
-            $item->takeProfit  = $row['takeProfit']  ?? null;
-            $item->volume      = $row['volume']      ?? '0';
-            $item->pnl         = $row['pnl']         ?? '0';
-
+            $item->symbol      = $row['symbol']     ?? '';
+            $item->direction   = $row['direction']  ?? 'long';
+            $item->openedAt    = $row['openedAt']   ?? '';
+            $item->closedAt    = $row['closedAt']   ?? '';
+            $item->entryPrice  = $row['entryPrice'] ?? '0';
+            $item->exitPrice   = $row['exitPrice']  ?? '0';
+            $item->stopLoss    = $row['stopLoss']   ?? null;
+            $item->takeProfit  = $row['takeProfit'] ?? null;
+            $item->volume      = $row['volume']     ?? '0';
+            $item->pnl         = $row['pnl']        ?? '0';
+            $item->isBacktest  = $isBacktest;
             if (!$item->symbol || !$item->openedAt || !$item->closedAt) continue;
             $items[] = $item;
         }
-
-        if (empty($items))
-            return $this->json(['error' => 'Aucune position valide dans le payload'], 422);
-
+        if (empty($items)) return $this->json(['error' => 'Aucune position valide'], 422);
         $result = $service->importPositions($items, (int)$data['timeframeId']);
         return $this->json($result, $result['created'] > 0 ? 201 : 422);
     }

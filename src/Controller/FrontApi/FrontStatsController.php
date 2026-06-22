@@ -13,8 +13,10 @@ final class FrontStatsController extends AbstractController
     #[Route('/frontApi/stats', name: 'front_stats', methods: ['GET'])]
     public function global(Request $request, StatsServiceInterface $service): JsonResponse
     {
-        $tagId = $request->query->has('tagId') ? $request->query->getInt('tagId') : null;
-        return $this->json($service->getGlobalStats($tagId ?: null));
+        $q         = $request->query;
+        $tagId     = $q->has('tagId')     ? $q->getInt('tagId')  : null;
+        $isBacktest= $q->has('isBacktest') ? filter_var($q->get('isBacktest'), FILTER_VALIDATE_BOOLEAN) : false;
+        return $this->json($service->getGlobalStats($tagId ?: null, $isBacktest));
     }
 
     #[Route('/frontApi/stats/by-tag', name: 'front_stats_by_tag', methods: ['GET'])]
@@ -26,7 +28,9 @@ final class FrontStatsController extends AbstractController
     #[Route('/frontApi/equity', name: 'front_equity', methods: ['GET'])]
     public function equity(Request $request, StatsServiceInterface $service): JsonResponse
     {
-        $tagId = $request->query->has('tagId') ? $request->query->getInt('tagId') : null;
-        return $this->json($service->getEquityCurve($tagId ?: null));
+        $q         = $request->query;
+        $tagId     = $q->has('tagId')     ? $q->getInt('tagId')  : null;
+        $isBacktest= $q->has('isBacktest') ? filter_var($q->get('isBacktest'), FILTER_VALIDATE_BOOLEAN) : false;
+        return $this->json($service->getEquityCurve($tagId ?: null, $isBacktest));
     }
 }

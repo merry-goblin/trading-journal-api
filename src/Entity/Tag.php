@@ -23,6 +23,9 @@ class Tag
     #[ORM\Column(type: Types::TEXT)]
     private ?string $description = null;
 
+    #[ORM\Column(name: 'is_backtest', options: ['default' => false])]
+    private bool $isBacktest = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -70,4 +73,7 @@ class Tag
 
         return $this;
     }
+
+    public function isBacktest(): bool { return $this->isBacktest; }
+    public function setIsBacktest(bool $v): static { $this->isBacktest = $v; return $this; }
 }

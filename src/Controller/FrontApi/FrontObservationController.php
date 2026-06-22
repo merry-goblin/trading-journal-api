@@ -2,10 +2,9 @@
 
 namespace App\Controller\FrontApi;
 
-use App\Domain\Exception\ValidationException\ChartObservationValidationException;
 use App\Domain\Service\ChartObservation\ChartObservationServiceInterface;
-use App\DTO\ChartObservation\ChartObservationInput;
 use App\DTO\FrontApi\Observation\FrontObservationCreateInputMapperInterface;
+use App\DTO\ChartObservation\ChartObservationInput;
 use App\DTO\FrontApi\Position\FrontScreenshotOutput;
 use App\Entity\ChartObservation;
 use App\Repository\ChartObservation\ChartObservationRepositoryInterface;
@@ -14,6 +13,7 @@ use App\Repository\Position\PositionRepositoryInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Attribute\Route;
 
 final class FrontObservationController extends AbstractController
@@ -30,21 +30,17 @@ final class FrontObservationController extends AbstractController
         if ($q->has('dateTo'))   $filters['dateTo']   = $q->get('dateTo');
         if ($q->has('trend'))    $filters['trend']    = $q->get('trend');
         if ($q->has('type'))     $filters['type']     = $q->get('type');
-
         $page  = max(1, $q->getInt('page',  1));
         $limit = min(50, max(1, $q->getInt('limit', 20)));
-
         return $this->json(array_map(
-            fn(ChartObservation $obs) => $this->toOutput($obs),
+            fn(ChartObservation $o) => $this->toOutput($o),
             $repository->findWithFilters($filters, $page, $limit)
         ));
     }
 
     #[Route('/frontApi/observation/{id}', name: 'front_observation_show', methods: ['GET'], requirements: ['id' => '\\d+'])]
-    public function show(
-        int $id,
-        ChartObservationRepositoryInterface $repository
-    ): JsonResponse {
+    public function show(int $id, ChartObservationRepositoryInterface $repository): JsonResponse
+    {
         $obs = $repository->find($id);
         if (!$obs) return $this->json(['error' => 'Not Found'], 404);
         return $this->json($this->toOutput($obs));
@@ -62,28 +58,22 @@ final class FrontObservationController extends AbstractController
         if (!is_array($data)) return $this->json(['error' => 'Invalid JSON'], 400);
 
         $input = $inputMapper->fromArray($data);
-
         if (!$input->positionId && !$input->orderId)
             return $this->json(['error' => 'positionId ou orderId requis'], 422);
 
-        // Inférer assetId et timeframeId depuis la position ou l'ordre
-        $assetId     = null;
-        $timeframeId = null;
-
+        $assetId = $timeframeId = null;
         if ($input->positionId) {
-            $position    = $positionRepository->find($input->positionId);
-            $assetId     = $position?->getAsset()?->getId();
-            $timeframeId = $position?->getTimeframe()?->getId();
+            $p = $positionRepository->find($input->positionId);
+            $assetId     = $p?->getAsset()?->getId();
+            $timeframeId = $p?->getTimeframe()?->getId();
         } elseif ($input->orderId) {
-            $order       = $orderRepository->find($input->orderId);
-            $assetId     = $order?->getAsset()?->getId();
-            $timeframeId = $order?->getTimeframe()?->getId();
+            $o = $orderRepository->find($input->orderId);
+            $assetId     = $o?->getAsset()?->getId();
+            $timeframeId = $o?->getTimeframe()?->getId();
         }
-
         if (!$assetId || !$timeframeId)
             return $this->json(['error' => 'Position ou ordre introuvable'], 404);
 
-        // Réutiliser ChartObservationService::create()
         $obsInput = new ChartObservationInput();
         $obsInput->assetId     = $assetId;
         $obsInput->timeframeId = $timeframeId;
@@ -97,31 +87,38 @@ final class FrontObservationController extends AbstractController
         $obsInput->periodStart = $input->periodStart;
         $obsInput->periodEnd   = $input->periodEnd;
 
-        try {
-            $observation = $service->create($obsInput);
-        } catch (ChartObservationValidationException $e) {
-            return $this->json([
-                'error'   => 'validation_failed',
-                'details' => (string) $e->getMessage(),
-            ], 422);
-        }
-
+        $observation = $service->create($obsInput);
         return $this->json($this->toOutput($observation), 201);
     }
 
-    // ── Mapper privé ──────────────────────────────────────────────
+    #[Route('/frontApi/observation/{id}', name: 'front_observation_update', methods: ['PATCH'], requirements: ['id' => '\\d+'])]
+    public function update(
+        Request $request,
+        ChartObservationServiceInterface $service,
+        int $id
+    ): JsonResponse {
+        $data = json_decode($request->getContent(), true);
+        if (!is_array($data)) return $this->json(['error' => 'Invalid JSON'], 400);
+        $obs = $service->update($id, $data);
+        return $this->json($this->toOutput($obs));
+    }
+
+    #[Route('/frontApi/observation/{id}', name: 'front_observation_delete', methods: ['DELETE'], requirements: ['id' => '\\d+'])]
+    public function delete(ChartObservationServiceInterface $service, int $id): JsonResponse
+    {
+        $service->delete($id);
+        return new JsonResponse(null, Response::HTTP_NO_CONTENT);
+    }
 
     private function toOutput(ChartObservation $obs): array
     {
         $orderId    = $obs->getOrder()?->getId();
         $positionId = $obs->getPosition()?->getId();
-
-        $context = match (true) {
+        $context    = match (true) {
             $positionId !== null => 'position',
-            $orderId !== null    => 'order',
+            $orderId    !== null => 'order',
             default              => 'free',
         };
-
         $screenshots = array_map(function ($s) {
             $sc = new FrontScreenshotOutput();
             $sc->id          = $s->getId();
@@ -135,17 +132,17 @@ final class FrontObservationController extends AbstractController
         }, $obs->getScreenshots()->toArray());
 
         return [
-            'id'             => $obs->getId(),
-            'observedAt'     => $obs->getObservedAt()?->format('Y-m-d H:i:s'),
-            'trend'          => $obs->getTrend(),
-            'comment'        => $obs->getComment(),
-            'orderId'        => $orderId,
-            'positionId'     => $positionId,
-            'assetSymbol'    => $obs->getAsset()?->getSymbol(),
-            'timeframeLabel' => $obs->getTimeframe()?->getLabel(),
-            'screenshotCount'=> count($screenshots),
-            'screenshots'    => $screenshots,
-            'context'        => $context,
+            'id'              => $obs->getId(),
+            'observedAt'      => $obs->getObservedAt()?->format('Y-m-d H:i:s'),
+            'trend'           => $obs->getTrend(),
+            'comment'         => $obs->getComment(),
+            'orderId'         => $orderId,
+            'positionId'      => $positionId,
+            'assetSymbol'     => $obs->getAsset()?->getSymbol(),
+            'timeframeLabel'  => $obs->getTimeframe()?->getLabel(),
+            'screenshotCount' => count($screenshots),
+            'screenshots'     => $screenshots,
+            'context'         => $context,
         ];
     }
 }

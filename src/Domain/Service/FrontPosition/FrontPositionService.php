@@ -48,12 +48,13 @@ class FrontPositionService implements FrontPositionServiceInterface
         $position = $this->positionRepository->find($id);
         if (!$position) throw new PositionNotFoundException('Position not found');
 
-        if ($input->hasPlanRespected) $position->setPlanRespected($input->planRespected);
-        if ($input->hasHigherTfBias)  $position->setHigherTfBias($input->higherTfBias);
-        if ($input->hasEntryTfBias)   $position->setEntryTfBias($input->entryTfBias);
-        if ($input->hasSetupQuality)  $position->setSetupQuality($input->setupQuality);
-        if ($input->hasEmotionScore)  $position->setEmotionScore($input->emotionScore);
-        if ($input->hasComment)       $position->setComment($input->comment);
+        if ($input->hasPlanRespected)  $position->setPlanRespected($input->planRespected);
+        if ($input->hasHigherTfBias)   $position->setHigherTfBias($input->higherTfBias);
+        if ($input->hasEntryTfBias)    $position->setEntryTfBias($input->entryTfBias);
+        if ($input->hasSetupQuality)   $position->setSetupQuality($input->setupQuality);
+        if ($input->hasEmotionScore)   $position->setEmotionScore($input->emotionScore);
+        if ($input->hasComment)        $position->setComment($input->comment);
+        if ($input->hasIsBacktest)     $position->setIsBacktest($input->isBacktest ?? false);
 
         if ($input->hasTagIds && $input->tagIds !== null) {
             foreach ($position->getTags() as $tag) $position->removeTag($tag);
@@ -66,8 +67,6 @@ class FrontPositionService implements FrontPositionServiceInterface
         $this->em->flush();
         return $this->toDetailOutput($position);
     }
-
-    // ── Mappers privés ────────────────────────────────────────────
 
     private function toListOutput(Position $p): FrontPositionListOutput
     {
@@ -84,6 +83,7 @@ class FrontPositionService implements FrontPositionServiceInterface
         $dto->rr = $p->getRr();
         $dto->planRespected = $p->isPlanRespected();
         $dto->setupQuality = $p->getSetupQuality();
+        $dto->isBacktest = $p->isBacktest();
         $dto->tagLabels = array_map(fn($t) => $t->getLabel(), $p->getTags()->toArray());
         return $dto;
     }
@@ -115,6 +115,7 @@ class FrontPositionService implements FrontPositionServiceInterface
         $dto->entryTfBias = $p->getEntryTfBias();
         $dto->setupQuality = $p->getSetupQuality();
         $dto->emotionScore = $p->getEmotionScore();
+        $dto->isBacktest = $p->isBacktest();
         $dto->tags = array_map(function ($t) {
             $out = new FrontTagOutput();
             $out->id = $t->getId();
@@ -123,12 +124,8 @@ class FrontPositionService implements FrontPositionServiceInterface
             return $out;
         }, $p->getTags()->toArray());
 
-        // Observations du cycle de vie complet :
-        // celles liées à la position + celles liées à l'ordre d'origine
         $originOrderId = $p->getOriginOrder()?->getId();
-        $observations = $this->observationRepository
-            ->findByPositionOrOrder($p->getId(), $originOrderId);
-
+        $observations = $this->observationRepository->findByPositionOrOrder($p->getId(), $originOrderId);
         $dto->observations = array_map(function ($obs) {
             $o = new FrontObservationOutput();
             $o->id = $obs->getId();
