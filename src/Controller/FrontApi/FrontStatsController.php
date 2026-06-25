@@ -10,12 +10,18 @@ use Symfony\Component\Routing\Attribute\Route;
 
 final class FrontStatsController extends AbstractController
 {
+    private function getBool(Request $r, string $key, bool $default = false): bool
+    {
+        return $r->query->has($key)
+            ? filter_var($r->query->get($key), FILTER_VALIDATE_BOOLEAN)
+            : $default;
+    }
+
     #[Route('/frontApi/stats', name: 'front_stats', methods: ['GET'])]
     public function global(Request $request, StatsServiceInterface $service): JsonResponse
     {
-        $q         = $request->query;
-        $tagId     = $q->has('tagId')     ? $q->getInt('tagId')  : null;
-        $isBacktest= $q->has('isBacktest') ? filter_var($q->get('isBacktest'), FILTER_VALIDATE_BOOLEAN) : false;
+        $tagId      = $request->query->has('tagId') ? $request->query->getInt('tagId') : null;
+        $isBacktest = $this->getBool($request, 'isBacktest');
         return $this->json($service->getGlobalStats($tagId ?: null, $isBacktest));
     }
 
@@ -28,9 +34,23 @@ final class FrontStatsController extends AbstractController
     #[Route('/frontApi/equity', name: 'front_equity', methods: ['GET'])]
     public function equity(Request $request, StatsServiceInterface $service): JsonResponse
     {
-        $q         = $request->query;
-        $tagId     = $q->has('tagId')     ? $q->getInt('tagId')  : null;
-        $isBacktest= $q->has('isBacktest') ? filter_var($q->get('isBacktest'), FILTER_VALIDATE_BOOLEAN) : false;
+        $tagId      = $request->query->has('tagId') ? $request->query->getInt('tagId') : null;
+        $isBacktest = $this->getBool($request, 'isBacktest');
         return $this->json($service->getEquityCurve($tagId ?: null, $isBacktest));
+    }
+
+    #[Route('/frontApi/stats/rr-distribution', name: 'front_stats_rr', methods: ['GET'])]
+    public function rrDistribution(Request $request, StatsServiceInterface $service): JsonResponse
+    {
+        $tagId      = $request->query->has('tagId') ? $request->query->getInt('tagId') : null;
+        $isBacktest = $this->getBool($request, 'isBacktest');
+        return $this->json($service->getRRDistribution($tagId ?: null, $isBacktest));
+    }
+
+    #[Route('/frontApi/stats/temporal', name: 'front_stats_temporal', methods: ['GET'])]
+    public function temporal(Request $request, StatsServiceInterface $service): JsonResponse
+    {
+        $isBacktest = $this->getBool($request, 'isBacktest');
+        return $this->json($service->getTemporalStats($isBacktest));
     }
 }

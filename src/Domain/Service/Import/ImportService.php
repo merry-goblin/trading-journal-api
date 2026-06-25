@@ -23,17 +23,40 @@ class ImportService implements ImportServiceInterface
     public function importPositions(array $items, int $timeframeId): array
     {
         $timeframe = $this->timeframeRepository->find($timeframeId);
-        if (!$timeframe) return ['created' => 0, 'skipped' => 0, 'errors' => ['Timeframe introuvable.']];
+        if (!$timeframe)
+            return ['created' => 0, 'completed' => 0, 'skipped' => 0,
+                    'errors'  => ['Timeframe introuvable.']];
 
-        $created = 0; $skipped = 0; $errors = [];
+        $created   = 0;
+        $completed = 0;
+        $skipped   = 0;
+        $errors    = [];
 
         foreach ($items as $index => $item) {
             try {
-                if ($this->positionRepository->existsByKey($item->symbol, $item->direction, $item->openedAt, $item->entryPrice)) {
-                    $skipped++; continue;
-                }
-                $asset = $this->resolveAsset($item->symbol);
+                $existing = $this->positionRepository->findByKey(
+                    $item->symbol,
+                    $item->direction,
+                    $item->openedAt,
+                    $item->entryPrice
+                );
 
+                if ($existing !== null) {
+                    if ($existing->getClosedAt() === null && $item->closedAt) {
+                        // Position incomplete : ajouter les donnees de cloture
+                        $existing->setClosedAt(new DateTimeImmutable($item->closedAt));
+                        $existing->setExitPrice($item->exitPrice);
+                        if ($item->pnl !== null) $existing->setPnl($item->pnl);
+                        $completed++;
+                    } else {
+                        // Position deja complete : ignorer
+                        $skipped++;
+                    }
+                    continue;
+                }
+
+                // Nouvelle position
+                $asset    = $this->resolveAsset($item->symbol);
                 $position = new Position();
                 $position->setAsset($asset);
                 $position->setTimeframe($timeframe);
@@ -50,20 +73,31 @@ class ImportService implements ImportServiceInterface
 
                 $this->em->persist($position);
                 $created++;
+
             } catch (\Throwable $e) {
-                $errors[] = sprintf('Ligne %d (%s) : %s', $index + 1, $item->symbol, $e->getMessage());
+                $errors[] = sprintf('Ligne %d (%s) : %s',
+                    $index + 1, $item->symbol, $e->getMessage());
             }
         }
+
         $this->em->flush();
-        return ['created' => $created, 'skipped' => $skipped, 'errors' => $errors];
+        return [
+            'created'   => $created,
+            'completed' => $completed,
+            'skipped'   => $skipped,
+            'errors'    => $errors,
+        ];
     }
 
     private function resolveAsset(string $symbol): Asset
     {
         $asset = $this->assetRepository->findOneBy(['symbol' => $symbol]);
         if ($asset) return $asset;
+
         $asset = new Asset();
-        $asset->setSymbol($symbol); $asset->setType('cfd'); $asset->setDescription('');
+        $asset->setSymbol($symbol);
+        $asset->setType('cfd');
+        $asset->setDescription('');
         $this->em->persist($asset);
         return $asset;
     }
