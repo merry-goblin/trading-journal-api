@@ -36,4 +36,7 @@ class PositionInput
     public ?string $rr            = null;
     public ?string $comment       = null;
     public bool    $isBacktest    = false;
+
+    /** @var int[]|null Tags a assigner a la creation (ex: tag de session backtest) */
+    public ?array  $tagIds        = null;
 }

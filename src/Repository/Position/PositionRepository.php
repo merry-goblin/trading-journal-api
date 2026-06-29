@@ -67,6 +67,45 @@ class PositionRepository extends ServiceEntityRepository implements PositionRepo
         return $qb->orderBy('p.closedAt', 'ASC')->getQuery()->getResult();
     }
 
+    /**
+     * Positions cloturees avec filtres combines pour les stats.
+     * isBacktest=null => tous modes ; planRespected=null => ignoré.
+     */
+    public function findClosedWithFilters(array $filters = []): array
+    {
+        $qb = $this->createQueryBuilder('p')
+            ->andWhere('p.closedAt IS NOT NULL')
+            ->andWhere('p.pnl IS NOT NULL');
+
+        // Mode : null = tous, false = live, true = backtest
+        if (array_key_exists('isBacktest', $filters) && $filters['isBacktest'] !== null)
+            $qb->andWhere('p.isBacktest = :isBt')
+               ->setParameter('isBt', (bool) $filters['isBacktest']);
+
+        if (!empty($filters['tagId']))
+            $qb->innerJoin('p.tags', 't')
+               ->andWhere('t.id = :tagId')
+               ->setParameter('tagId', (int) $filters['tagId']);
+
+        if (!empty($filters['direction']))
+            $qb->andWhere('p.direction = :dir')
+               ->setParameter('dir', $filters['direction']);
+
+        if (array_key_exists('planRespected', $filters) && $filters['planRespected'] !== null)
+            $qb->andWhere('p.planRespected = :pr')
+               ->setParameter('pr', (bool) $filters['planRespected']);
+
+        if (!empty($filters['dateFrom']))
+            $qb->andWhere('p.openedAt >= :dateFrom')
+               ->setParameter('dateFrom', new DateTimeImmutable($filters['dateFrom']));
+
+        if (!empty($filters['dateTo']))
+            $qb->andWhere('p.openedAt <= :dateTo')
+               ->setParameter('dateTo', new DateTimeImmutable($filters['dateTo'] . ' 23:59:59'));
+
+        return $qb->orderBy('p.closedAt', 'ASC')->getQuery()->getResult();
+    }
+
     public function findWithFilters(array $filters = [], int $page = 1, int $limit = 20): array
     {
         $qb = $this->createQueryBuilder('p');

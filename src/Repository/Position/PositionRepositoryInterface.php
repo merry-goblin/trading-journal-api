@@ -12,12 +12,15 @@ interface PositionRepositoryInterface
     public function findAll(): array;
     public function findClosed(?bool $isBacktest = false): array;
     public function findClosedByTag(int $tagId, ?bool $isBacktest = false): array;
-    public function findWithFilters(array $filters, int $page, int $limit): array;
 
     /**
-     * Retourne la position correspondant a la cle metier, ou null si absente.
-     * Remplace existsByKey (plus utile : on peut inspecter la position trouvee).
+     * Positions cloturees avec filtres combines (stats, equity, R:R, temporal).
+     * Filtres supportes : isBacktest, tagId, direction, planRespected, dateFrom, dateTo.
      */
+    public function findClosedWithFilters(array $filters = []): array;
+
+    public function findWithFilters(array $filters, int $page, int $limit): array;
+
     public function findByKey(
         string $symbol,
         string $direction,
@@ -25,7 +28,6 @@ interface PositionRepositoryInterface
         string $entryPrice
     ): ?Position;
 
-    /** Raccourci : true si findByKey retourne non-null. */
     public function existsByKey(
         string $symbol,
         string $direction,

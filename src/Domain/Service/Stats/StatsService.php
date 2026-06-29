@@ -13,11 +13,9 @@ class StatsService implements StatsServiceInterface
         private PositionRepositoryInterface $positionRepository
     ) {}
 
-    public function getGlobalStats(?int $tagId = null, ?bool $isBacktest = false): StatsOutput
+    public function getGlobalStats(array $filters = []): StatsOutput
     {
-        $positions = $tagId !== null
-            ? $this->positionRepository->findClosedByTag($tagId, $isBacktest)
-            : $this->positionRepository->findClosed($isBacktest);
+        $positions = $this->positionRepository->findClosedWithFilters($filters);
 
         $dto = new StatsOutput();
         $dto->totalTrades = count($positions);
@@ -39,22 +37,18 @@ class StatsService implements StatsServiceInterface
         $dto->avgPnl    = round($dto->totalPnl / $dto->totalTrades, 2);
         $dto->avgRr     = count($rrs) > 0 ? round(array_sum($rrs) / count($rrs), 2) : null;
 
-        // Gains / pertes moyens
         $dto->avgWin  = count($wins)   > 0 ? round(array_sum($wins)   / count($wins), 2)   : null;
         $dto->avgLoss = count($losses) > 0 ? round(array_sum($losses) / count($losses), 2) : null;
 
-        // Esperance mathematique
         if ($dto->avgWin !== null && $dto->avgLoss !== null) {
             $wr = $dto->winrate / 100.0;
             $dto->expectancy = round($wr * $dto->avgWin + (1 - $wr) * $dto->avgLoss, 2);
         }
 
-        // Profit Factor
         $grossProfit = array_sum($wins);
         $grossLoss   = abs(array_sum($losses));
         $dto->profitFactor = $grossLoss > 0 ? round($grossProfit / $grossLoss, 2) : null;
 
-        // Meileur / pire trade
         $maxPnl = max($pnls); $minPnl = min($pnls);
         foreach ($positions as $p) {
             if ($dto->bestTradeId  === null && floatval($p->getPnl()) == $maxPnl)
@@ -63,7 +57,6 @@ class StatsService implements StatsServiceInterface
                 { $dto->worstTradeId = $p->getId(); $dto->worstTradePnl = $minPnl; }
         }
 
-        // Series
         $win = 0; $loss = 0; $maxW = 0; $maxL = 0;
         foreach ($pnls as $pnl) {
             if ($pnl > 0) { $win++; $loss = 0; $maxW = max($maxW, $win); }
@@ -72,7 +65,7 @@ class StatsService implements StatsServiceInterface
         $dto->maxWinStreak  = $maxW;
         $dto->maxLossStreak = $maxL;
 
-        $withData = array_filter($positions, fn(Position $p) => $p->isPlanRespected() !== null);
+        $withData  = array_filter($positions, fn(Position $p) => $p->isPlanRespected() !== null);
         if (count($withData) > 0) {
             $respected = array_filter($withData, fn(Position $p) => $p->isPlanRespected() === true);
             $dto->disciplineScore = round(count($respected) / count($withData) * 100, 1);
@@ -81,15 +74,22 @@ class StatsService implements StatsServiceInterface
         return $dto;
     }
 
-    public function getStatsByTag(): array
+    public function getStatsByTag(array $filters = []): array
     {
-        $positions = $this->positionRepository->findClosed(false);
-        $tagData   = [];
+        // Pour by-tag on enleve le filtre tagId (on veut tous les tags)
+        $f = array_diff_key($filters, ['tagId' => true]);
+        $positions = $this->positionRepository->findClosedWithFilters($f);
+
+        $tagData = [];
         foreach ($positions as $position) {
             foreach ($position->getTags() as $tag) {
                 $key = $tag->getId();
                 if (!isset($tagData[$key]))
-                    $tagData[$key] = ['id'=>$tag->getId(),'label'=>$tag->getLabel(),'type'=>$tag->getType(),'count'=>0,'winCount'=>0,'totalPnl'=>0.0,'totalRr'=>0.0,'rrCount'=>0];
+                    $tagData[$key] = [
+                        'id' => $tag->getId(), 'label' => $tag->getLabel(),
+                        'type' => $tag->getType(), 'count' => 0, 'winCount' => 0,
+                        'totalPnl' => 0.0, 'totalRr' => 0.0, 'rrCount' => 0
+                    ];
                 $tagData[$key]['count']++;
                 $pnl = floatval($position->getPnl() ?? 0);
                 $tagData[$key]['totalPnl'] += $pnl;
@@ -100,22 +100,21 @@ class StatsService implements StatsServiceInterface
                 }
             }
         }
+
         return array_values(array_map(function (array $d) {
             $dto = new TagStatsOutput();
-            $dto->tagId=$d['id']; $dto->tagLabel=$d['label']; $dto->tagType=$d['type'];
-            $dto->count=$d['count']; $dto->winCount=$d['winCount'];
-            $dto->winrate=$d['count']>0?round($d['winCount']/$d['count']*100,2):0.0;
-            $dto->totalPnl=round($d['totalPnl'],2);
-            $dto->avgRr=$d['rrCount']>0?round($d['totalRr']/$d['rrCount'],2):null;
+            $dto->tagId    = $d['id'];  $dto->tagLabel = $d['label']; $dto->tagType = $d['type'];
+            $dto->count    = $d['count']; $dto->winCount = $d['winCount'];
+            $dto->winrate  = $d['count'] > 0 ? round($d['winCount'] / $d['count'] * 100, 2) : 0.0;
+            $dto->totalPnl = round($d['totalPnl'], 2);
+            $dto->avgRr    = $d['rrCount'] > 0 ? round($d['totalRr'] / $d['rrCount'], 2) : null;
             return $dto;
         }, $tagData));
     }
 
-    public function getEquityCurve(?int $tagId = null, ?bool $isBacktest = false): array
+    public function getEquityCurve(array $filters = []): array
     {
-        $positions = $tagId !== null
-            ? $this->positionRepository->findClosedByTag($tagId, $isBacktest)
-            : $this->positionRepository->findClosed($isBacktest);
+        $positions  = $this->positionRepository->findClosedWithFilters($filters);
         $cumulative = 0.0;
         return array_map(function (Position $p) use (&$cumulative) {
             $pnl = floatval($p->getPnl() ?? 0);
@@ -130,13 +129,10 @@ class StatsService implements StatsServiceInterface
         }, $positions);
     }
 
-    public function getRRDistribution(?int $tagId = null, ?bool $isBacktest = false): array
+    public function getRRDistribution(array $filters = []): array
     {
-        $positions = $tagId !== null
-            ? $this->positionRepository->findClosedByTag($tagId, $isBacktest)
-            : $this->positionRepository->findClosed($isBacktest);
+        $positions = $this->positionRepository->findClosedWithFilters($filters);
 
-        // Buckets avec R:R signe (positif = trade gagnant, negatif = perdant)
         $buckets = [
             ['label' => '<-2R',      'min' => -INF, 'max' => -2.0, 'count' => 0, 'wins' => 0],
             ['label' => '-2R→-1R',  'min' => -2.0, 'max' => -1.0, 'count' => 0, 'wins' => 0],
@@ -154,10 +150,8 @@ class StatsService implements StatsServiceInterface
             $rr       = floatval($p->getRr());
             $pnl      = floatval($p->getPnl() ?? 0);
             $signedRR = $pnl >= 0 ? $rr : -$rr;
-
             foreach ($buckets as &$b) {
-                if ($signedRR >= $b['min'] && $signedRR < $b['max'])
-                    { $b['count']++; break; }
+                if ($signedRR >= $b['min'] && $signedRR < $b['max']) { $b['count']++; break; }
             }
         }
         unset($b);
@@ -165,57 +159,39 @@ class StatsService implements StatsServiceInterface
         return array_values(array_filter($buckets, fn($b) => $b['count'] > 0));
     }
 
-    public function getTemporalStats(?bool $isBacktest = false): array
+    public function getTemporalStats(array $filters = []): array
     {
-        $positions = $this->positionRepository->findClosed($isBacktest);
-
-        $byHour    = [];
-        $byWeekday = [];
+        $positions  = $this->positionRepository->findClosedWithFilters($filters);
+        $byHour     = [];
+        $byWeekday  = [];
 
         foreach ($positions as $p) {
             $openedAt = $p->getOpenedAt();
             if (!$openedAt) continue;
-            $pnl = floatval($p->getPnl() ?? 0);
-
+            $pnl     = floatval($p->getPnl() ?? 0);
             $hour    = (int)$openedAt->format('G');
-            $weekday = (int)$openedAt->format('N'); // 1=Lun, 7=Dim
+            $weekday = (int)$openedAt->format('N');
 
-            if (!isset($byHour[$hour]))
-                $byHour[$hour] = ['count' => 0, 'wins' => 0, 'pnl' => 0.0];
-            $byHour[$hour]['count']++;
-            $byHour[$hour]['pnl'] += $pnl;
+            if (!isset($byHour[$hour]))    $byHour[$hour]    = ['count' => 0, 'wins' => 0, 'pnl' => 0.0];
+            if (!isset($byWeekday[$weekday])) $byWeekday[$weekday] = ['count' => 0, 'wins' => 0, 'pnl' => 0.0];
+
+            $byHour[$hour]['count']++;    $byHour[$hour]['pnl'] += $pnl;
             if ($pnl > 0) $byHour[$hour]['wins']++;
-
-            if (!isset($byWeekday[$weekday]))
-                $byWeekday[$weekday] = ['count' => 0, 'wins' => 0, 'pnl' => 0.0];
-            $byWeekday[$weekday]['count']++;
-            $byWeekday[$weekday]['pnl'] += $pnl;
+            $byWeekday[$weekday]['count']++; $byWeekday[$weekday]['pnl'] += $pnl;
             if ($pnl > 0) $byWeekday[$weekday]['wins']++;
         }
 
-        ksort($byHour);
-        ksort($byWeekday);
+        ksort($byHour); ksort($byWeekday);
         $wdLabels = [1=>'Lun',2=>'Mar',3=>'Mer',4=>'Jeu',5=>'Ven',6=>'Sam',7=>'Dim'];
 
         return [
             'byHour' => array_values(array_map(function ($h, $d) {
-                return [
-                    'hour'    => $h,
-                    'label'   => sprintf('%02d:00', $h),
-                    'count'   => $d['count'],
-                    'pnl'     => round($d['pnl'], 2),
-                    'winrate' => round($d['wins'] / $d['count'] * 100, 1),
-                ];
+                return ['hour'=>$h,'label'=>sprintf('%02d:00',$h),'count'=>$d['count'],
+                        'pnl'=>round($d['pnl'],2),'winrate'=>round($d['wins']/$d['count']*100,1)];
             }, array_keys($byHour), $byHour)),
-
             'byWeekday' => array_values(array_map(function ($wd, $d) use ($wdLabels) {
-                return [
-                    'weekday' => $wd,
-                    'label'   => $wdLabels[$wd] ?? "J$wd",
-                    'count'   => $d['count'],
-                    'pnl'     => round($d['pnl'], 2),
-                    'winrate' => round($d['wins'] / $d['count'] * 100, 1),
-                ];
+                return ['weekday'=>$wd,'label'=>$wdLabels[$wd]??"J$wd",'count'=>$d['count'],
+                        'pnl'=>round($d['pnl'],2),'winrate'=>round($d['wins']/$d['count']*100,1)];
             }, array_keys($byWeekday), $byWeekday)),
         ];
     }

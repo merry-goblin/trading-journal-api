@@ -26,6 +26,11 @@ class PositionInputMapper extends AbstractMapper implements PositionInputMapperI
         $dto->rr           = $this->stringOrNull($data['rr']          ?? null);
         $dto->comment      = $this->stringOrNull($data['comment']     ?? null);
         $dto->isBacktest   = isset($data['isBacktest']) ? (bool)$data['isBacktest'] : false;
+
+        // tagIds : tableau d'entiers optionnel (tag de session BacktestPanel)
+        if (!empty($data['tagIds']) && is_array($data['tagIds']))
+            $dto->tagIds = array_map('intval', $data['tagIds']);
+
         return $dto;
     }
 }

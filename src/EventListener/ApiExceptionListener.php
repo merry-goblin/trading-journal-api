@@ -74,6 +74,7 @@ final class ApiExceptionListener
             ];
         }
 
+        error_log($exception);
         //throw $exception;// For debug purpose only: throw $exception;
 
         // 💥 Internal error (500)

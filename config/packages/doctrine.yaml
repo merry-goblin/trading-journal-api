@@ -9,7 +9,7 @@ doctrine:
         profiling_collect_backtrace: '%kernel.debug%'
         use_savepoints: true
     orm:
-        auto_generate_proxy_classes: true
+        auto_generate_proxy_classes: false
         enable_lazy_ghost_objects: true
         report_fields_where_declared: true
         validate_xml_mapping: true
@@ -32,6 +32,11 @@ when@test:
         dbal:
             # "TEST_TOKEN" is typically set by ParaTest
             dbname_suffix: '_test%env(default::TEST_TOKEN)%'
+
+when@dev:
+    doctrine:
+        orm:
+            auto_generate_proxy_classes: 3   # AUTOGENERATE_EVAL
 
 when@prod:
     doctrine:
